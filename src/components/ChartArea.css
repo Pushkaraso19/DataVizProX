@@ -1,0 +1,539 @@
+/* ChartArea container styles */
+.chart-area {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chart-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow: auto;
+}
+
+/* Chart placeholder when no data is present */
+.chart-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 0.5rem;
+  color: #6b7280;
+  font-size: 1.125rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* General chart preview container */
+.chart-preview {
+  width: 100%;
+  max-width: 800px;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Chart info section */
+.chart-info {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.chart-info h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  color: #111827;
+}
+
+.chart-info p {
+  margin: 0.5rem 0;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+/* Chart mock visuals container */
+.chart-mock-visual {
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  background-color: #f9fafb;
+}
+
+/* Generic chart styles */
+.mock-generic-chart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mock-generic-placeholder {
+  padding: 2rem;
+  background-color: #e5e7eb;
+  border-radius: 0.5rem;
+  color: #4b5563;
+}
+
+/* Bar chart styles */
+.mock-bar-chart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+}
+
+.mock-bar {
+  width: 15%;
+  background-color: #3b82f6;
+  border-radius: 0.25rem 0.25rem 0 0;
+  transition: height 0.3s ease;
+}
+
+/* Line chart styles */
+.mock-line-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-line {
+  fill: none;
+  stroke: #3b82f6;
+  stroke-width: 2;
+}
+
+.mock-point {
+  fill: #3b82f6;
+  stroke: white;
+  stroke-width: 1;
+}
+
+/* Pie chart styles */
+.mock-pie-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-slice-1 {
+  fill: #3b82f6;
+}
+
+.mock-slice-2 {
+  fill: #10b981;
+}
+
+.mock-slice-3 {
+  fill: #f59e0b;
+}
+
+.mock-slice-4 {
+  fill: #ef4444;
+}
+
+/* Area chart styles */
+.mock-area-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-area {
+  fill: rgba(59, 130, 246, 0.3);
+  stroke: #3b82f6;
+  stroke-width: 2;
+}
+
+/* Scatter chart styles */
+.mock-scatter-chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* Donut chart styles */
+.mock-donut-chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* Radar chart styles */
+.mock-radar-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-radar-grid {
+  stroke: #d1d5db;
+  stroke-width: 1;
+}
+
+.mock-radar-data {
+  stroke: #3b82f6;
+  stroke-width: 2;
+}
+
+/* Boxplot styles */
+.mock-boxplot-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-whisker, .mock-whisker-cap {
+  stroke: #6b7280;
+  stroke-width: 1;
+}
+
+.mock-box {
+  fill: rgba(59, 130, 246, 0.3);
+  stroke: #3b82f6;
+  stroke-width: 1;
+}
+
+.mock-median {
+  stroke: #1e40af;
+  stroke-width: 2;
+}
+
+/* Histogram styles */
+.mock-histogram-chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* Heatmap styles */
+.mock-heatmap-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-cell {
+  stroke: white;
+  stroke-width: 1;
+}
+
+.mock-cell.level-1 {
+  fill: rgba(59, 130, 246, 0.2);
+}
+
+.mock-cell.level-2 {
+  fill: rgba(59, 130, 246, 0.4);
+}
+
+.mock-cell.level-3 {
+  fill: rgba(59, 130, 246, 0.6);
+}
+
+.mock-cell.level-4 {
+  fill: rgba(59, 130, 246, 0.8);
+}
+
+.mock-cell.level-5 {
+  fill: rgba(59, 130, 246, 1);
+}
+
+/* Bubble chart styles */
+.mock-bubble-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-bubble {
+  fill: rgba(59, 130, 246, 0.5);
+  stroke: #3b82f6;
+  stroke-width: 1;
+}
+
+/* Treemap styles */
+.mock-treemap-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-treemap-cell {
+  stroke: white;
+  stroke-width: 1;
+}
+
+.mock-treemap-cell.level-1 {
+  fill: #93c5fd;
+}
+
+.mock-treemap-cell.level-2 {
+  fill: #60a5fa;
+}
+
+.mock-treemap-cell.level-3 {
+  fill: #3b82f6;
+}
+
+.mock-treemap-cell.level-4 {
+  fill: #2563eb;
+}
+
+.mock-treemap-cell.level-5 {
+  fill: #1d4ed8;
+}
+
+/* Sunburst styles */
+.mock-sunburst-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-sunburst-ring {
+  stroke: white;
+  stroke-width: 1;
+}
+
+.mock-sunburst-slice.level-1 {
+  fill: #93c5fd;
+}
+
+.mock-sunburst-slice.level-2 {
+  fill: #60a5fa;
+}
+
+.mock-sunburst-slice.level-3 {
+  fill: #3b82f6;
+}
+
+.mock-sunburst-slice.level-4 {
+  fill: #2563eb;
+}
+
+/* Sankey styles */
+.mock-sankey-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-sankey-node {
+  stroke: white;
+  stroke-width: 1;
+}
+
+.mock-sankey-node.level-1 {
+  fill: #93c5fd;
+}
+
+.mock-sankey-node.level-2 {
+  fill: #60a5fa;
+}
+
+.mock-sankey-node.level-3 {
+  fill: #3b82f6;
+}
+
+.mock-sankey-node.level-4 {
+  fill: #2563eb;
+}
+
+.mock-sankey-node.level-5 {
+  fill: #1d4ed8;
+}
+
+.mock-sankey-link {
+  fill: rgba(59, 130, 246, 0.2);
+  stroke: none;
+}
+
+/* Gauge chart styles */
+.mock-gauge-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-gauge-bg {
+  stroke: #e5e7eb;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.mock-gauge-value {
+  stroke: #3b82f6;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.mock-gauge-center {
+  fill: #9ca3af;
+}
+
+.mock-gauge-needle {
+  stroke: #6b7280;
+  stroke-width: 2;
+}
+
+/* Dendrogram styles */
+.mock-dendrogram-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-branch {
+  stroke: #6b7280;
+  stroke-width: 1;
+}
+
+.mock-leaf {
+  fill: #3b82f6;
+}
+
+/* Error bar chart styles */
+.mock-errorbar-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-error, .mock-error-cap {
+  stroke: #6b7280;
+  stroke-width: 1;
+}
+
+/* Violin plot styles */
+.mock-violin-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-violin {
+  fill: rgba(59, 130, 246, 0.3);
+  stroke: #3b82f6;
+  stroke-width: 1;
+}
+
+/* Candlestick chart styles */
+.mock-candlestick-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-candle-wick {
+  stroke: #6b7280;
+  stroke-width: 1;
+}
+
+.mock-candle-up {
+  fill: #10b981;
+  stroke: #059669;
+  stroke-width: 1;
+}
+
+.mock-candle-down {
+  fill: #ef4444;
+  stroke: #dc2626;
+  stroke-width: 1;
+}
+
+/* Waterfall chart styles */
+.mock-waterfall-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-waterfall-start, .mock-waterfall-end {
+  fill: #9ca3af;
+  stroke: #6b7280;
+  stroke-width: 1;
+}
+
+.mock-waterfall-positive {
+  fill: #10b981;
+  stroke: #059669;
+  stroke-width: 1;
+}
+
+.mock-waterfall-negative {
+  fill: #ef4444;
+  stroke: #dc2626;
+  stroke-width: 1;
+}
+
+.mock-waterfall-connector {
+  stroke: #6b7280;
+  stroke-width: 1;
+  stroke-dasharray: 2;
+}
+
+/* Funnel chart styles */
+.mock-funnel-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-funnel-segment {
+  stroke: white;
+  stroke-width: 1;
+}
+
+.mock-funnel-segment.level-1 {
+  fill: #93c5fd;
+}
+
+.mock-funnel-segment.level-2 {
+  fill: #60a5fa;
+}
+
+.mock-funnel-segment.level-3 {
+  fill: #3b82f6;
+}
+
+.mock-funnel-segment.level-4 {
+  fill: #2563eb;
+}
+
+/* Parallel coordinates plot styles */
+.mock-parallel-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.mock-parallel-axis {
+  stroke: #d1d5db;
+  stroke-width: 1;
+}
+
+.mock-parallel-line {
+  stroke-width: 2;
+}
+
+.mock-parallel-line.line-1 {
+  stroke: #3b82f6;
+}
+
+.mock-parallel-line.line-2 {
+  stroke: #10b981;
+}
+
+.mock-parallel-line.line-3 {
+  stroke: #f59e0b;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .chart-info h3 {
+    font-size: 1rem;
+  }
+  
+  .chart-info p {
+    font-size: 0.75rem;
+  }
+  
+  .chart-mock-visual {
+    height: 200px;
+    padding: 1rem;
+  }
+}

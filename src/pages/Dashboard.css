@@ -1,0 +1,549 @@
+/* Dashboard.css */
+:root {
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-color: #333;
+    --background-color: #dff8e1; /* Light green background */
+    --header-background-color: #388e3c; /* Dark green */
+    --navbar-background-color: #027c68; /* Semi-transparent dark green */
+    --navbar-opaque-background-color: #388e3c; /* Opaque dark green */
+    --link-color: #c4fbcb; /* White links */
+    --link-hover-color: #81c784; /* Light green on hover */
+    --secondary-color: #555; /* Darker gray for secondary text */
+    --feature-background: #FAF9F6; /* White for features */
+    --button-primary-background: #4caf50; /* Medium green for primary buttons */
+    --button-success-background: #66bb6a; /* Light green for success buttons */
+    --input-border-color: #81c784; /* Light green for input borders */
+    --chart-item-hover: #e8f5e9; /* Very light green for hover states */
+    --chart-item-active: #c8e6c9; /* Light green for active states */
+}
+    
+/* Main layout */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background-color);
+  font-family: var(--font-family);
+  padding: 5px 5px; /* Add consistent padding to match navbar/footer */
+}
+
+/* Sidebar styles */
+.sidebar {
+  width: 300px;
+  background-color: var(--feature-background);
+  padding: 24px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Match shadow with navbar/footer */
+  overflow-y: auto;
+  height: calc(100vh - 10px); /* Adjust height to account for margins */
+  position: sticky;
+  top: 5px; /* Match top margin */
+  margin: 15px 0 5px 5px; /* Add same 5px margin as navbar/footer */
+  display: flex;
+  flex-direction: column;
+  border-radius: 3px; /* Match border-radius with footer */
+}
+
+/* Success notification styles */
+.upload-notification.success {
+  background-color: var(--button-primary-background);
+  color: white;
+}
+
+.upload-notification {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  border-radius: 4px;
+  background-color: var(--header-background-color);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slide-in-out 3s ease-in-out;
+}
+
+/* Main content styles - adjust to fit with new sidebar margins */
+.main-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: scroll;
+  margin: 5px 5px 5px 0; /* Add consistent margins */
+}
+
+/* Rest of your existing CSS below */
+.sidebar-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--header-background-color);
+  margin-bottom: 24px;
+}
+
+.control-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--secondary-color);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Search input styling */
+.search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--input-border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 16px;
+  box-sizing: border-box;
+  background-color: #fff;
+  color: var(--font-color);
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--button-primary-background);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.search-input::placeholder {
+  color: #aaa;
+}
+
+/* Chart type grid - styled for the unified sidebar */
+.chart-type-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 350px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+/* Style the scrollbar */
+.chart-type-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chart-type-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.chart-type-grid::-webkit-scrollbar-thumb {
+  background: var(--input-border-color);
+  border-radius: 4px;
+}
+
+.chart-type-grid::-webkit-scrollbar-thumb:hover {
+  background: var(--button-success-background);
+}
+
+.chart-type-button {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: var(--feature-background);
+  color: var(--secondary-color);
+  border: 1px solid var(--input-border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.chart-type-button:hover {
+  background-color: var(--chart-item-hover);
+  border-color: var(--button-success-background);
+}
+
+.chart-type-button.active {
+  background-color: var(--chart-item-active);
+  color: var(--header-background-color);
+  border: 2px solid var(--button-primary-background);
+  font-weight: 500;
+}
+
+.chart-icon {
+  margin-right: 12px;
+  color: var(--header-background-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chart-label {
+  font-size: 14px;
+  flex: 1;
+}
+
+/* Chart options */
+.chart-options {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 16px;
+  border: 1px solid var(--input-border-color);
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: var(--secondary-color);
+  cursor: pointer;
+}
+
+.option-checkbox {
+  margin-right: 8px;
+  accent-color: var(--button-primary-background);
+}
+
+/* Generate button */
+.generate-button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background-color: var(--button-primary-background);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+  margin-top: auto;
+  margin-bottom: 8px;
+}
+
+.generate-button:hover {
+  background-color: var(--button-success-background);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.generate-button.disabled {
+  background-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.generate-button span {
+  margin-right: 8px;
+}
+
+.header {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--header-background-color);
+  margin-bottom: 4px;
+}
+
+.page-description {
+  color: var(--secondary-color);
+}
+
+.chart-container {
+  background-color: var(--feature-background);
+  border-radius: 8px;
+  overflow: hidden;
+  /* padding: 24px; */
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-height: 400px;
+}
+
+.chart-container svg {
+  display: block;
+  margin: 0 auto; /* Optional: centers the SVG */
+}
+
+
+/* Table container */
+.table-container {
+  background-color: var(--feature-background);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--navbar-background-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.table-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--header-background-color);
+  margin: 0;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  background-color: var(--feature-background);
+  border: 1px solid var(--navbar-background-color);
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: var(--secondary-color);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: var(--button-success-background);
+  color: white;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+  .chart-type-grid {
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: calc(100% - 10px); /* Account for margins */
+    height: auto;
+    position: static;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin: 5px; /* Consistent margins on mobile */
+  }
+
+  .main-content {
+    margin: 5px; /* Consistent margins on mobile */
+  }
+
+  .chart-type-grid {
+    max-height: 300px;
+  }
+
+  .generate-button {
+    margin-top: 16px;
+  }
+}
+
+/* Data Table Styling */
+.data-display-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-display-table th {
+  background-color: var(--chart-item-active);
+  color: var(--header-background-color);
+  font-weight: 500;
+  text-align: left;
+  padding: 12px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.data-display-table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.data-display-table tr:hover {
+  background-color: var(--chart-item-hover);
+}
+
+.table-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.table-footer {
+  text-align: right;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: var(--secondary-color);
+  border-top: 1px solid #eee;
+}
+
+.table-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--secondary-color);
+  text-align: center;
+}
+
+/* File Upload Styling */
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.file-input-container {
+  position: relative;
+}
+
+.file-name {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--header-background-color);
+}
+
+@keyframes slide-in-out {
+  0% { transform: translateX(100%); opacity: 0; }
+  10% { transform: translateX(0); opacity: 1; }
+  90% { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+/* Chart Enhancements */
+.chart-container svg {
+  overflow: visible;
+}
+
+.chart-container svg text {
+  font-family: var(--font-family);
+  font-size: 12px;
+}
+
+.chart-container svg .axis-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.chart-container {
+  cursor: grab; /* Default hand cursor */
+}
+
+.chart-container:active {
+  cursor: grabbing; /* Hand cursor while panning */
+  border: 1px solid #000; /* Ensure border remains visible */
+}
+
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.z-10 {
+  z-index: 10;
+}
+
+.max-h-40 {
+  max-height: 10rem;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+.hover\:bg-gray-100:hover {
+  background-color: #f7fafc;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.zoom-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 5px;
+  z-index: 10; /* Ensure buttons are above the chart */
+}
+
+.zoom-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.zoom-button:hover {
+  background-color: #388e3c;
+}
+
+/* Small loader container */
+.small-loader-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Small spinner */
+.small-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #ddd;
+  border-top: 3px solid #4caf50;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Loader text */
+.loader-text {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
