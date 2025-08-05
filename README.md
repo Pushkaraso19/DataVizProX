@@ -59,7 +59,7 @@ DataViz-Pro/
 - [React](https://reactjs.org/) – Frontend library
 - [Vite](https://vitejs.dev/) – Build tool
 - [Tailwind CSS](https://tailwindcss.com/) – Utility-first CSS framework
-- [Chart.js](https://www.chartjs.org/) – Charting library
+- [D3.js](https://d3js.org/) – Charting library
 
 ## 📄 License
 
