@@ -21,15 +21,6 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               <motion.a 
-                href="https://twitter.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-gray-800 hover:bg-emerald-600 h-10 w-10 rounded-full flex items-center justify-center transition-colors"
-                whileHover={{ y: -3 }}
-              >
-                <i className="fab fa-twitter"></i>
-              </motion.a>
-              <motion.a 
                 href="https://linkedin.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
@@ -82,20 +73,10 @@ const Footer = () => {
           <div className="col-span-1">
             <h3 className="text-lg font-semibold mb-4 text-emerald-400">Contact Us</h3>
             <ul className="space-y-3">
-              <li className="flex items-start">
-                <i className="fas fa-map-marker-alt text-emerald-400 mt-1 mr-3"></i>
-                <span className="text-gray-400">Konkan Gyanpeeth College of Engineering, Sankul, Vengaon Road, Dahivali, Karjat, Raigad, Maharashtra, India, 410201</span>
-              </li>
               <li className="flex items-center">
                 <i className="fas fa-envelope text-emerald-400 mr-3"></i>
                 <a href="mailto:info@datavizpro.com" className="text-gray-400 hover:text-white transition-colors">
                   info.datavizpro@gmail.com
-                </a>
-              </li>
-              <li className="flex items-center">
-                <i className="fas fa-phone text-emerald-400 mr-3"></i>
-                <a href="tel:+919172220935" className="text-gray-400 hover:text-white transition-colors">
-                  +91 91722-20935
                 </a>
               </li>
             </ul>

@@ -1,4 +1,3 @@
-/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     "./index.html",
@@ -8,7 +7,7 @@ export default {
     extend: {
       colors: {
         emerald: {
-          50: '#ecfdf5',
+          50: '#ebffe0',
           100: '#d1fae5',
           200: '#a7f3d0',
           300: '#6ee7b7',
@@ -19,6 +18,9 @@ export default {
           800: '#065f46',
           900: '#064e3b',
         },
+      },
+      backgroundImage: {
+        'gradient-text': 'linear-gradient(to right, #34d399, #14b8a6)',
       },
     },
   },

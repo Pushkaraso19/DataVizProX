@@ -1,379 +1,26 @@
 import React from 'react';
-
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import FileUpload from '../components/FileUpload';
-import ChartArea from '../components/ChartArea';
-import DataTable from '../components/DataTable';
+import ChartTypes from '../components/dashboardComponents/ChartTypes'
+import FileUpload from '../components/dashboardComponents/FileUpload';
+import ChartArea from '../components/dashboardComponents/ChartArea';
+import DataTable from '../components/dashboardComponents/DataTable';
 import ExcelJS from 'exceljs'
-import { Download, FileJson, FileText, FileImage, Image, Search, Code2, ChevronDown } from 'lucide-react';
+import { Download, FileJson, FileText, FileImage, Image, Code2, ChevronDown } from 'lucide-react';
 import './Dashboard.css';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-// SVG chart icons
-const ChartIcons = {
-  bar: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-      <rect x="3" y="10" width="3" height="10" />
-      <rect x="8" y="4" width="3" height="16" />
-      <rect x="13" y="7" width="3" height="13" />
-      <rect x="18" y="12" width="3" height="8" />
-    </svg>
-  ),
-  groupedBar: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <rect x="3" y="14" width="2" height="6" fill="currentColor" />
-      <rect x="6" y="12" width="2" height="8" fill="currentColor" />
-      <rect x="9" y="10" width="2" height="10" fill="currentColor" />
-      <rect x="12" y="8" width="2" height="12" fill="currentColor" />
-      <rect x="15" y="14" width="2" height="6" fill="currentColor" fill-opacity="0.6" />
-      <rect x="18" y="12" width="2" height="8" fill="currentColor" fill-opacity="0.6" />
-      <rect x="21" y="10" width="2" height="10" fill="currentColor" fill-opacity="0.6" />
-    </svg>
-  ),
-  line: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="3,17 9,11 14,13 21,5" />
-      <circle cx="3" cy="17" r="1.5" fill="currentColor" />
-      <circle cx="9" cy="11" r="1.5" fill="currentColor" />
-      <circle cx="14" cy="13" r="1.5" fill="currentColor" />
-      <circle cx="21" cy="5" r="1.5" fill="currentColor" />
-    </svg>
-  ),
-  area: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-      <path d="M3,17 L9,11 L14,13 L21,5 L21,20 L3,20 Z" fillOpacity="0.6" />
-      <polyline points="3,17 9,11 14,13 21,5" fill="none" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  ),
-  pie: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <path d="M12,2 A10,10 0 0,1 22,12 L12,12 Z" fill="currentColor" />
-      <path d="M12,12 L12,22 A10,10 0 0,1 4,6 Z" fill="currentColor" fillOpacity="0.7" />
-      <path d="M12,12 L4,6 A10,10 0 0,1 12,2 Z" fill="currentColor" fillOpacity="0.4" />
-    </svg>
-  ),
-  doughnut: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <path d="M12,2 A10,10 0 0,1 22,12 L18,12 A6,6 0 0,0 12,6 Z" fill="currentColor" />
-      <path d="M12,12 L12,18 A6,6 0 0,1 6,12 Z" fill="currentColor" fillOpacity="0.5" />
-      <path d="M12,12 L6,12 A6,6 0 0,1 12,6 Z" fill="currentColor" fillOpacity="0.7" />
-      <circle cx="12" cy="12" r="4" fill="white" />
-    </svg>
-  ),
-  stackedBar: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <rect x="3" y="14" width="3" height="6" fill="currentColor" />
-      <rect x="3" y="8" width="3" height="6" fill="currentColor" fillOpacity="0.6" />
-      <rect x="8" y="12" width="3" height="8" fill="currentColor" />
-      <rect x="8" y="4" width="3" height="8" fill="currentColor" fillOpacity="0.6" />
-      <rect x="13" y="10" width="3" height="10" fill="currentColor" />
-      <rect x="13" y="5" width="3" height="5" fill="currentColor" fillOpacity="0.6" />
-      <rect x="18" y="16" width="3" height="4" fill="currentColor" />
-      <rect x="18" y="9" width="3" height="7" fill="currentColor" fillOpacity="0.6" />
-    </svg>
-  ),
-  stackedBar100: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <rect x="3" y="4" width="3" height="6" fill="currentColor" fillOpacity="0.3" />
-      <rect x="3" y="10" width="3" height="6" fill="currentColor" fillOpacity="0.6" />
-      <rect x="3" y="16" width="3" height="4" fill="currentColor" />
-      <rect x="8" y="4" width="3" height="8" fill="currentColor" fillOpacity="0.3" />
-      <rect x="8" y="12" width="3" height="5" fill="currentColor" fillOpacity="0.6" />
-      <rect x="8" y="17" width="3" height="3" fill="currentColor" />
-      <rect x="13" y="4" width="3" height="4" fill="currentColor" fillOpacity="0.3" />
-      <rect x="13" y="8" width="3" height="8" fill="currentColor" fillOpacity="0.6" />
-      <rect x="13" y="16" width="3" height="4" fill="currentColor" />
-      <rect x="18" y="4" width="3" height="5" fill="currentColor" fillOpacity="0.3" />
-      <rect x="18" y="9" width="3" height="7" fill="currentColor" fillOpacity="0.6" />
-      <rect x="18" y="16" width="3" height="4" fill="currentColor" />
-    </svg>
-  ),
-  scatter: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-      <circle cx="5" cy="18" r="1.5" />
-      <circle cx="8" cy="12" r="1.5" />
-      <circle cx="11" cy="17" r="1.5" />
-      <circle cx="14" cy="9" r="1.5" />
-      <circle cx="17" cy="14" r="1.5" />
-      <circle cx="20" cy="6" r="1.5" />
-    </svg>
-  ),
-  bubble: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-      <circle cx="5" cy="18" r="1" />
-      <circle cx="8" cy="12" r="2" />
-      <circle cx="12" cy="17" r="1.5" />
-      <circle cx="14" cy="9" r="3" />
-      <circle cx="19" cy="14" r="2" />
-    </svg>
-  ),
-  histogram: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-      <rect x="2" y="16" width="2" height="4" />
-      <rect x="5" y="12" width="2" height="8" />
-      <rect x="8" y="14" width="2" height="6" />
-      <rect x="11" y="8" width="2" height="12" />
-      <rect x="14" y="10" width="2" height="10" />
-      <rect x="17" y="16" width="2" height="4" />
-      <rect x="20" y="18" width="2" height="2" />
-    </svg>
-  ),
-  boxPlot: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="1.5" fill="none">
-      <line x1="6" y1="4" x2="6" y2="8" />
-      <line x1="6" y1="20" x2="6" y2="16" />
-      <line x1="4" y1="4" x2="8" y2="4" />
-      <line x1="4" y1="20" x2="8" y2="20" />
-      <rect x="4" y="8" width="4" height="8" fill="currentColor" fillOpacity="0.2" />
-      <line x1="4" y1="12" x2="8" y2="12" stroke="currentColor" strokeWidth="1.5" />
-      
-      <line x1="18" y1="6" x2="18" y2="10" />
-      <line x1="18" y1="18" x2="18" y2="14" />
-      <line x1="16" y1="6" x2="20" y2="6" />
-      <line x1="16" y1="18" x2="20" y2="18" />
-      <rect x="16" y="10" width="4" height="4" fill="currentColor" fillOpacity="0.2" />
-      <line x1="16" y1="12" x2="20" y2="12" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  ),
-  heatmap: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <rect x="3" y="3" width="3" height="3" fill="currentColor" fillOpacity="0.2" />
-      <rect x="7" y="3" width="3" height="3" fill="currentColor" fillOpacity="0.6" />
-      <rect x="11" y="3" width="3" height="3" fill="currentColor" fillOpacity="0.8" />
-      <rect x="15" y="3" width="3" height="3" fill="currentColor" fillOpacity="0.4" />
-      <rect x="19" y="3" width="3" height="3" fill="currentColor" fillOpacity="0.1" />
-      
-      <rect x="3" y="7" width="3" height="3" fill="currentColor" fillOpacity="0.7" />
-      <rect x="7" y="7" width="3" height="3" fill="currentColor" fillOpacity="0.9" />
-      <rect x="11" y="7" width="3" height="3" fill="currentColor" />
-      <rect x="15" y="7" width="3" height="3" fill="currentColor" fillOpacity="0.5" />
-      <rect x="19" y="7" width="3" height="3" fill="currentColor" fillOpacity="0.3" />
-      
-      <rect x="3" y="11" width="3" height="3" fill="currentColor" fillOpacity="0.5" />
-      <rect x="7" y="11" width="3" height="3" fill="currentColor" fillOpacity="0.7" />
-      <rect x="11" y="11" width="3" height="3" fill="currentColor" fillOpacity="0.3" />
-      <rect x="15" y="11" width="3" height="3" fill="currentColor" fillOpacity="0.2" />
-      <rect x="19" y="11" width="3" height="3" fill="currentColor" fillOpacity="0.6" />
-      
-      <rect x="3" y="15" width="3" height="3" fill="currentColor" fillOpacity="0.3" />
-      <rect x="7" y="15" width="3" height="3" fill="currentColor" fillOpacity="0.2" />
-      <rect x="11" y="15" width="3" height="3" fill="currentColor" fillOpacity="0.4" />
-      <rect x="15" y="15" width="3" height="3" fill="currentColor" fillOpacity="0.9" />
-      <rect x="19" y="15" width="3" height="3" fill="currentColor" fillOpacity="0.8" />
-    </svg>
-  ),
-  calendarHeatmap: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <rect x="3" y="3" width="2" height="2" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="6" y="3" width="2" height="2" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="9" y="3" width="2" height="2" fill="currentColor" fillOpacity="0.7" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="12" y="3" width="2" height="2" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="15" y="3" width="2" height="2" fill="currentColor" fillOpacity="0.5" stroke="currentColor" strokeWidth="0.5" />
-      
-      <rect x="3" y="6" width="2" height="2" fill="currentColor" fillOpacity="0.6" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="6" y="6" width="2" height="2" fill="currentColor" fillOpacity="0.9" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="9" y="6" width="2" height="2" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="12" y="6" width="2" height="2" fill="currentColor" fillOpacity="0.8" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="15" y="6" width="2" height="2" fill="currentColor" fillOpacity="0.4" stroke="currentColor" strokeWidth="0.5" />
-      
-      <rect x="3" y="9" width="2" height="2" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="6" y="9" width="2" height="2" fill="currentColor" fillOpacity="0.7" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="9" y="9" width="2" height="2" fill="currentColor" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="12" y="9" width="2" height="2" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="15" y="9" width="2" height="2" fill="currentColor" fillOpacity="0.5" stroke="currentColor" strokeWidth="0.5" />
-      
-      <rect x="18" y="3" width="2" height="2" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="18" y="6" width="2" height="2" fill="currentColor" fillOpacity="0.4" stroke="currentColor" strokeWidth="0.5" />
-      <rect x="18" y="9" width="2" height="2" fill="currentColor" fillOpacity="0.6" stroke="currentColor" strokeWidth="0.5" />
-    </svg>
-  ),
-  radar: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1">
-      <circle cx="12" cy="12" r="2" fill="currentColor" />
-      <circle cx="12" cy="12" r="6" fill="none" />
-      <circle cx="12" cy="12" r="10" fill="none" />
-      <line x1="12" y1="2" x2="12" y2="22" />
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <line x1="4" y1="4" x2="20" y2="20" />
-      <line x1="20" y1="4" x2="4" y2="20" />
-      <path d="M12,12 L18,8 L16,15 L8,18 L6,10 Z" fill="currentColor" fillOpacity="0.3" stroke="currentColor" />
-    </svg>
-  ),
-  treemap: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <rect x="3" y="3" width="10" height="10" fill="currentColor" fillOpacity="0.7" stroke="currentColor" />
-      <rect x="14" y="3" width="7" height="5" fill="currentColor" fillOpacity="0.5" stroke="currentColor" />
-      <rect x="14" y="9" width="7" height="4" fill="currentColor" fillOpacity="0.3" stroke="currentColor" />
-      <rect x="3" y="14" width="7" height="7" fill="currentColor" fillOpacity="0.6" stroke="currentColor" />
-      <rect x="11" y="14" width="10" height="7" fill="currentColor" fillOpacity="0.4" stroke="currentColor" />
-    </svg>
-  ),
-  sunburst: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <circle cx="12" cy="12" r="3" fill="currentColor" />
-      <path d="M12,9 A3,3 0 0,1 15,12 L12,12 Z" fill="currentColor" fillOpacity="0.8" stroke="currentColor" strokeWidth="0.5" />
-      <path d="M12,9 A3,3 0 0,0 9,12 L12,12 Z" fill="currentColor" fillOpacity="0.6" stroke="currentColor" strokeWidth="0.5" />
-      <path d="M15,12 A3,3 0 0,1 12,15 L12,12 Z" fill="currentColor" fillOpacity="0.4" stroke="currentColor" strokeWidth="0.5" />
-      <path d="M12,15 A3,3 0 0,1 9,12 L12,12 Z" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="0.5" />
-      
-      <path d="M12,6 A6,6 0 0,1 18,12 L15,12 A3,3 0 0,0 12,9 Z" fill="currentColor" fillOpacity="0.7" stroke="currentColor" strokeWidth="0.5" />
-      <path d="M12,6 A6,6 0 0,0 6,12 L9,12 A3,3 0 0,1 12,9 Z" fill="currentColor" fillOpacity="0.5" stroke="currentColor" strokeWidth="0.5" />
-      <path d="M18,12 A6,6 0 0,1 12,18 L12,15 A3,3 0 0,0 15,12 Z" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="0.5" />
-      <path d="M12,18 A6,6 0 0,1 6,12 L9,12 A3,3 0 0,0 12,15 Z" fill="currentColor" fillOpacity="0.1" stroke="currentColor" strokeWidth="0.5" />
-    </svg>
-  ),
-  stepLine: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
-      <polyline points="3,17 7,17 7,13 12,13 12,8 17,8 17,5 21,5" />
-      <circle cx="3" cy="17" r="1.5" fill="currentColor" />
-      <circle cx="7" cy="17" r="1.5" fill="currentColor" />
-      <circle cx="7" cy="13" r="1.5" fill="currentColor" />
-      <circle cx="12" cy="13" r="1.5" fill="currentColor" />
-      <circle cx="12" cy="8" r="1.5" fill="currentColor" />
-      <circle cx="17" cy="8" r="1.5" fill="currentColor" />
-      <circle cx="17" cy="5" r="1.5" fill="currentColor" />
-      <circle cx="21" cy="5" r="1.5" fill="currentColor" />
-    </svg>
-  ),
-  slopeChart: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <line x1="6" y1="5" x2="18" y2="8" />
-      <line x1="6" y1="10" x2="18" y2="15" />
-      <line x1="6" y1="17" x2="18" y2="20" />
-      <circle cx="6" cy="5" r="1.5" fill="currentColor" />
-      <circle cx="18" cy="8" r="1.5" fill="currentColor" />
-      <circle cx="6" cy="10" r="1.5" fill="currentColor" />
-      <circle cx="18" cy="15" r="1.5" fill="currentColor" />
-      <circle cx="6" cy="17" r="1.5" fill="currentColor" />
-      <circle cx="18" cy="20" r="1.5" fill="currentColor" />
-    </svg>
-  ),
-  violinPlot: (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <path d="M6,4 C8,4 8,12 6,12 C4,12 4,4 6,4 Z" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="1" />
-      <path d="M6,12 C8,12 8,20 6,20 C4,20 4,12 6,12 Z" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="1" />
-      <line x1="6" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="1" />
-      <line x1="5" y1="10" x2="7" y2="10" stroke="currentColor" strokeWidth="1" />
-      <line x1="5" y1="14" x2="7" y2="14" stroke="currentColor" strokeWidth="1" />
-      
-      <path d="M18,4 C20,4 20,12 18,12 C16,12 16,4 18,4 Z" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="1" />
-      <path d="M18,12 C20,12 20,20 18,20 C16,20 16,12 18,12 Z" fill="currentColor" fillOpacity="0.3" stroke="currentColor" strokeWidth="1" />
-      <line x1="18" y1="8" x2="18" y2="16" stroke="currentColor" strokeWidth="1" />
-      <line x1="17" y1="10" x2="19" y2="10" stroke="currentColor" strokeWidth="1" />
-      <line x1="17" y1="14" x2="19" y2="14" stroke="currentColor" strokeWidth="1" />
-    </svg>
-  )
-};
-
 const Dashboard = () => {
-  // Define the chartTypes that map to the descriptions provided
-  const chartTypes = {
-    area: { 
-      label: 'Area Chart', 
-      icon: ChartIcons.area,
-      description: 'Show cumulative change over time'
-    },
-    bar: { 
-      label: 'Bar Chart', 
-      icon: ChartIcons.bar,
-      description: 'Compare values across categories'
-    },
-    boxPlot: { 
-      label: 'Box Plot', 
-      icon: ChartIcons.boxPlot,
-      description: 'Show data distribution and outliers'
-    },
-    bubble: { 
-      label: 'Bubble Chart', 
-      icon: ChartIcons.bubble,
-      description: 'Add third dimension (via bubble size)'
-    },
-    calendarHeatmap: { 
-      label: 'Calendar Heatmap', 
-      icon: ChartIcons.calendarHeatmap,
-      description: 'Daily/monthly activity patterns (like GitHub)'
-    },
-    doughnut: { 
-      label: 'Doughnut Chart', 
-      icon: ChartIcons.doughnut,
-      description: 'Like Pie, but with better label space'
-    },
-    groupedBar: { 
-      label: 'Grouped Bar Chart', 
-      icon: ChartIcons.groupedBar,
-      description: 'Compare multiple categories across groups'
-    },
-    heatmap: { 
-      label: 'Heatmap', 
-      icon: ChartIcons.heatmap,
-      description: 'Visualize correlations, intensity, patterns'
-    },
-    histogram: { 
-      label: 'Histogram', 
-      icon: ChartIcons.histogram,
-      description: 'Frequency distribution of a single variable'
-    },
-    line: { 
-      label: 'Line Chart', 
-      icon: ChartIcons.line,
-      description: 'Show trends and time series'
-    },
-    pie: { 
-      label: 'Pie Chart', 
-      icon: ChartIcons.pie,
-      description: 'Show parts of a whole (simple proportions)'
-    },
-    radar: { 
-      label: 'Radar/Spider Chart', 
-      icon: ChartIcons.radar,
-      description: 'Multi-variable comparison (e.g. skills)'
-    },
-    scatter: { 
-      label: 'Scatter Plot', 
-      icon: ChartIcons.scatter,
-      description: 'Show relationships between 2 variables'
-    },
-    slopeChart: { 
-      label: 'Slope Chart', 
-      icon: ChartIcons.slopeChart,
-      description: 'Show changes between two points clearly'
-    },
-    stackedBar: { 
-      label: 'Stacked Bar Chart', 
-      icon: ChartIcons.stackedBar,
-      description: 'Compare parts of a whole + totals'
-    },
-    stackedBar100: { 
-      label: '100% Stacked Bar', 
-      icon: ChartIcons.stackedBar100,
-      description: 'Compare % contribution in each category'
-    },
-    stepLine: { 
-      label: 'Step Line Chart', 
-      icon: ChartIcons.stepLine,
-      description: 'Shows changes that happen at irregular intervals'
-    },
-    // sunburst: { 
-    //   label: 'Sunburst Chart', 
-    //   icon: ChartIcons.sunburst,
-    //   description: 'Radial version of a Treemap (hierarchies)'
-    // },
-    // treemap: { 
-    //   label: 'Treemap', 
-    //   icon: ChartIcons.treemap,
-    //   description: 'Visualize hierarchical data with proportions'
-    // },
-    violinPlot: { 
-      label: 'Violin Plot', 
-      icon: ChartIcons.violinPlot,
-      description: 'Advanced distribution + density view'
-    }
-  };
-
   const [data, setData] = useState(null);
   const [chartType, setChartType] = useState('area');
+  const [toolMode, setToolMode] = useState('default');
+  const chartAreaRef = useRef(null);
+  const [chartColors, setChartColors] = useState({
+    primary: '#4caf50',
+    text: '#333333',
+    axis: '#666666'
+  });
   const [searchQueryChartSelection, setSearchQueryChartSelection] = useState('');
   const [searchQueryDataTable, setSearchQueryDataTable] = useState('');
   const [xKey, setXKey] = useState('');
@@ -381,9 +28,9 @@ const Dashboard = () => {
   const [yKey, setYKey] = useState('');
   const [groupKey, setGroupKey] = useState('');
   const [colorMap, setColorMap] = useState({});
-  const [showNotification, setShowNotification] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
   const menuRef = useRef(null);
+  const exportDropdownRef = useRef(null);
   const [xAxisSearch, setXAxisSearch] = useState('');
   const [yAxisSearch, setYAxisSearch] = useState('');
   const [xAxisDropdownOpen, setXAxisDropdownOpen] = useState(false);
@@ -396,45 +43,82 @@ const Dashboard = () => {
   const [zAxisDropdownOpen, setZAxisDropdownOpen] = useState(false);
   const [treeNameKey, setTreeNameKey] = useState('');
   const [treeValueKey, setTreeValueKey] = useState('');
+  const [treeValueSearch, setTreeValueSearch] = useState('');
+  const [treeValueDropdownOpen, setTreeValueDropdownOpen] = useState(false);
   const [treeParentKey, setTreeParentKey] = useState(null);
   const [treeHierarchyKeys, setTreeHierarchyKeys] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [sheetModalOpen, setSheetModalOpen] = useState(false);
   
 
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Handle export dropdown
+      if (exportDropdownRef.current && !exportDropdownRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+      
+      // Handle other dropdowns
       if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setXAxisDropdownOpen(false);
+        setYAxisDropdownOpen(false);
+        setGroupDropdownOpen(false);
+        setZAxisDropdownOpen(false);
+        setTreeValueDropdownOpen(false);
+      }
+    };
+
+    const handleKeyPress = (event) => {
+      if (event.key === 'Escape') {
         setIsMenuOpen(false);
         setXAxisDropdownOpen(false);
         setYAxisDropdownOpen(false);
+        setGroupDropdownOpen(false);
+        setZAxisDropdownOpen(false);
+        setTreeValueDropdownOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyPress);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyPress);
     };
-  }, [menuRef]);
+  }, []);
   
   const handleDataProcessed = (processedData) => {
     if (processedData && processedData.length > 0) {
-      const headers = Object.keys(processedData[0]);
-      console.log(headers)
-      setXKey(headers[0] || '');
-      setYKey(headers[1] || '');
-      setXAxisSearch(''); // Reset input
-      setYAxisSearch('');
-      setChartType(chartType);
-      
-    setData(processedData);
-    setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 3000);// Ensure the chart type is set
+      try {
+        // Validate data structure
+        const headers = Object.keys(processedData[0]);
+        console.log('Data headers:', headers);
+        console.log(`Dataset size: ${processedData.length} rows, ${headers.length} columns`);
+        
+        // Performance warning for very large datasets
+        if (processedData.length > 50000) {
+          console.warn('Large dataset detected. Performance optimizations are active.');
+        }
+        
+        // Set simple default selections
+        setXKey(headers[0] || '');
+        setYKey(headers[1] || '');
+        setXAxisSearch(''); 
+        setYAxisSearch('');
+        
+        setData(processedData);
+        
+      } catch (error) {
+        console.error('Error processing data:', error);
+        alert('Error processing data: ' + error.message);
+      }
     }
-  };  
+  };
+  
 
-  // Filter chart types based on search query
-  const filteredChartTypes = Object.entries(chartTypes).filter(([key, details]) =>
+
+  const filteredChartTypes = Object.entries(ChartTypes).filter(([key, details]) =>
     details.label.toLowerCase().includes(searchQueryChartSelection.toLowerCase()) ||
     details.description.toLowerCase().includes(searchQueryChartSelection.toLowerCase())
   );
@@ -480,20 +164,6 @@ const Dashboard = () => {
       border: "1px solid var(--button-success-background)",
       scale: 1.0
       
-    }
-  };
-
-  const notificationVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { type: "spring", stiffness: 300 }
-    },
-    exit: { 
-      opacity: 0, 
-      y: -20,
-      transition: { duration: 0.2 }
     }
   };
 
@@ -640,11 +310,15 @@ const Dashboard = () => {
         animate="visible"
         variants={sidebarVariants}
       >
-        <h2 className="sidebar-title">Dashboard Controls</h2>
+        <h2 className="text-3xl font-bold mb-6" style={{ color: '#000' }}>
+          <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Dashboard</span> Controls
+        </h2>
 
         <div className="control-section">
-          <h3 className="section-title underline">Data Source</h3>
-          <FileUpload onDataProcessed={handleDataProcessed} />
+          <h3 className="text-2xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-emerald-200">
+            <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Data</span> Source
+          </h3>
+          <FileUpload onDataProcessed={handleDataProcessed} onSheetModalChange={setSheetModalOpen} />
         </div>
 
         {/* Customization Section  */}
@@ -655,18 +329,22 @@ const Dashboard = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <h3 className="section-title underline">Chart Customization</h3>            
+            <h3 className="text-2xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-emerald-200">
+              <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Chart</span> Customization
+            </h3>            
             <div className="space-y-4">
 
               {/* Data Mapping */}
               <div className="space-y-3">
-                <h4 className="font-medium text-2xl text-gray-700">Data Mapping</h4>
+                <h4 className="font-semibold text-xl text-gray-700 mb-3">
+                  Data <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Mapping</span>
+                </h4>
 
                 {/* X-Axis Selection */}
                 <div className="mb-4 relative">
-                  <label className="block text-xl font-medium mb-1">
+                  <label className="block text-lg font-semibold text-gray-700 mb-2">
                     {(() => {
-                      if (['pie', 'doughnut'].includes(chartType)) return "Category";
+                      if (['pie'].includes(chartType)) return "Category";
                       if (['stackedBar', 'stackedBar100', 'boxPlot', 'heatmap', 'radar', 'calendarHeatmap', 'violinPlot', 'groupedBar'].includes(chartType)) return "Category";
                       if (chartType === 'histogram') return "Value";
                       return chartType === "calendarHeatmap" ? "Date" : "X-Axis";
@@ -693,7 +371,7 @@ const Dashboard = () => {
                           setXKey("");
                         }
                       }}
-                      className="w-full p-2 border border-gray-300 rounded pr-8"
+                      className="w-full p-2 border border-gray-300 rounded pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
                     />
                     <ChevronDown
                       size={16}
@@ -702,7 +380,8 @@ const Dashboard = () => {
                   </div>
 
                   {xAxisDropdownOpen && (
-                    <div className="absolute z-10 bg-white border border-gray-300 rounded w-full max-h-48 overflow-y-auto mt-1 shadow">
+                    <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
+                         style={{ animation: 'fadeIn 0.2s ease-out' }}>
                       {Object.keys(data[0] || {})
                         .filter((key) => key.toLowerCase().includes((xAxisSearch || '').toLowerCase()))
                         .map((key) => (
@@ -713,9 +392,9 @@ const Dashboard = () => {
                               setXAxisSearch('');
                               setXAxisDropdownOpen(false);
                             }}
-                            className="p-2 hover:bg-gray-100 cursor-pointer text-2xl"
+                            className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
                           >
-                            {key}
+                            <div className="font-medium text-gray-900 text-base">{key}</div>
                           </div>
                         ))}
                       {Object.keys(data[0] || {}).filter((key) =>
@@ -730,9 +409,9 @@ const Dashboard = () => {
                 {/* Y-Axis Selection */}
                 {chartType !== 'histogram' && (
                   <div className="mb-4 relative">
-                    <label className="block text-xl font-medium mb-1">
+                    <label className="block text-lg font-semibold text-gray-700 mb-2">
                       {(() => {
-                        if (['pie', 'doughnut'].includes(chartType)) return "Value";
+                        if (['pie'].includes(chartType)) return "Value";
                         if (['stackedBar', 'stackedBar100', 'groupedBar'].includes(chartType)) return "Select Data to Stack";
                         if (['boxPlot', 'heatmap', 'radar', 'calendarHeatmap', 'violinPlot'].includes(chartType)) return "Value";
                         return "Y-Axis";
@@ -763,7 +442,7 @@ const Dashboard = () => {
                             setYKey("");
                           }
                         }}
-                        className="w-full p-2 border border-gray-300 rounded pr-8"
+                        className="w-full p-2 border border-gray-300 rounded pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
                       />
                       <ChevronDown
                         size={16}
@@ -772,7 +451,8 @@ const Dashboard = () => {
                     </div>
 
                     {yAxisDropdownOpen && (
-                      <div className="absolute z-10 bg-white border border-gray-300 rounded w-full max-h-48 overflow-y-auto mt-1 shadow">
+                      <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
+                           style={{ animation: 'fadeIn 0.2s ease-out' }}>
                         {Object.keys(data[0] || {})
                           .filter((key) => {
                             if (!key.toLowerCase().includes((yAxisSearch || '').toLowerCase())) return false;
@@ -798,17 +478,19 @@ const Dashboard = () => {
                                   setYAxisDropdownOpen(false);
                                 }
                               }}
-                              className="p-2 hover:bg-gray-100 cursor-pointer text-2xl flex items-center"
+                              className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
                             >
-                              {['radar', 'stackedBar', 'stackedBar100', 'groupedBar'].includes(chartType) && (
-                                <input
-                                  type="checkbox"
-                                  checked={Array.isArray(yKey) && yKey.includes(key)}
-                                  readOnly
-                                  className="mr-2"
-                                />
-                              )}
-                              {key}
+                              <div className="flex items-center space-x-3">
+                                {['radar', 'stackedBar', 'stackedBar100', 'groupedBar'].includes(chartType) && (
+                                  <input
+                                    type="checkbox"
+                                    checked={Array.isArray(yKey) && yKey.includes(key)}
+                                    readOnly
+                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                  />
+                                )}
+                                <div className="font-medium text-gray-900 text-base">{key}</div>
+                              </div>
                             </div>
                           ))}
                         {Object.keys(data[0] || {}).filter((key) =>
@@ -825,7 +507,7 @@ const Dashboard = () => {
                 {/* Z-Axis Selection for Bubble Chart */}
                 {chartType === 'bubble' && (
                   <div className="mb-4 relative">
-                    <label className="block text-xl font-medium mb-1">Size</label>
+                    <label className="block text-lg font-semibold text-gray-700 mb-2">Size</label>
                     <div className="relative">
                       <input
                         type="text"
@@ -841,7 +523,7 @@ const Dashboard = () => {
                             setZKey("");
                           }
                         }}
-                        className="w-full p-2 border border-gray-300 rounded pr-8"
+                        className="w-full p-2 border border-gray-300 rounded pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
                       />
                       <ChevronDown
                         size={16}
@@ -850,7 +532,8 @@ const Dashboard = () => {
                     </div>
 
                     {zAxisDropdownOpen && (
-                      <div className="absolute z-10 bg-white border border-gray-300 rounded w-full max-h-48 overflow-y-auto mt-1 shadow">
+                      <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
+                           style={{ animation: 'fadeIn 0.2s ease-out' }}>
                         {Object.keys(data[0] || {})
                           .filter((key) => key.toLowerCase().includes((zAxisSearch || '').toLowerCase()))
                           .map((key) => (
@@ -861,9 +544,9 @@ const Dashboard = () => {
                                 setZAxisSearch('');
                                 setZAxisDropdownOpen(false);
                               }}
-                              className="p-2 hover:bg-gray-100 cursor-pointer text-2xl"
+                              className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
                             >
-                              {key}
+                              <div className="font-medium text-gray-900 text-base">{key}</div>
                             </div>
                           ))}
                           {Object.keys(data[0] || {}).filter((key) =>
@@ -880,7 +563,7 @@ const Dashboard = () => {
                 {/* Group By Selection */}
                 {['stackedBar', 'stackedBar100', 'bubble', 'scatter', 'groupedBar'].includes(chartType) && (
                   <div className="mb-4 relative">
-                    <label className="block text-xl font-medium mb-1">Group By</label>
+                    <label className="block text-lg font-semibold text-gray-700 mb-2">Group By</label>
                     <div className="relative">
                       <input
                         type="text"
@@ -896,7 +579,7 @@ const Dashboard = () => {
                             setGroupKey("");
                           }
                         }}
-                        className="w-full p-2 border border-gray-300 rounded pr-8"
+                        className="w-full p-2 border border-gray-300 rounded pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
                       />
                       <ChevronDown
                         size={16}
@@ -905,7 +588,8 @@ const Dashboard = () => {
                     </div>
 
                     {groupDropdownOpen && (
-                      <div className="absolute z-10 bg-white border border-gray-300 rounded w-full max-h-48 overflow-y-auto mt-1 shadow">
+                      <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
+                           style={{ animation: 'fadeIn 0.2s ease-out' }}>
                         {Object.keys(data[0] || {})
                           .filter((key) => key.toLowerCase().includes((groupSearch || '').toLowerCase()))
                           .map((key) => (
@@ -916,9 +600,9 @@ const Dashboard = () => {
                                 setGroupSearch('');
                                 setGroupDropdownOpen(false);
                               }}
-                              className="p-2 hover:bg-gray-100 cursor-pointer text-2xl"
+                              className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
                             >
-                              {key}
+                              <div className="font-medium text-gray-900 text-base">{key}</div>
                             </div>
                           ))}
                           {Object.keys(data[0] || {}).filter((key) =>
@@ -931,45 +615,96 @@ const Dashboard = () => {
                   </div>
                 )}
 
-                {['sunburst', 'treemap'].includes(chartType) && (
+                {['sunburst'].includes(chartType) && (
                   <>
                     {/* Tree Levels Mapping */}
                     <div className="mb-4 relative">
-                      <label className="block text-xl font-medium mb-1">Hierarchy Levels (Top to Bottom)</label>
-                      <select
-                        multiple
-                        value={treeHierarchyKeys}
-                        onChange={(e) => setTreeHierarchyKeys([...e.target.selectedOptions].map(o => o.value))}
-                        className="w-full p-2 border border-gray-300 rounded h-40"
-                      >
-                        {Object.keys(data[0] || {}).map(key => (
-                          <option key={key} value={key}>{key}</option>
-                        ))}
-                      </select>
+                      <label className="block text-lg font-semibold text-gray-700 mb-2">Hierarchy Levels (Top to Bottom)</label>
+                      <div className="space-y-2 max-h-48 overflow-y-auto p-3 border border-gray-200 rounded-xl bg-gray-50">
+                        {Object.keys(data[0] || {}).map(key => {
+                          const isSelected = treeHierarchyKeys.includes(key);
+                          
+                          return (
+                            <div
+                              key={key}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setTreeHierarchyKeys(treeHierarchyKeys.filter(k => k !== key));
+                                } else {
+                                  setTreeHierarchyKeys([...treeHierarchyKeys, key]);
+                                }
+                              }}
+                              className={`p-3 cursor-pointer transition-all duration-200 border-2 rounded-lg ${
+                                isSelected 
+                                  ? 'border-blue-400 bg-blue-50 shadow-sm' 
+                                  : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="font-medium text-gray-900 text-base">{key}</div>
+                                {isSelected && (
+                                  <div className="text-blue-500 font-bold text-lg">✓</div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
                     {/* Tree Value Mapping */}
                     <div className="mb-4 relative">
-                      <label className="block text-xl font-medium mb-1">Node Value Field</label>
-                      <select
-                        value={treeValueKey}
-                        onChange={(e) => setTreeValueKey(e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded"
-                      >
-                        {Object.keys(data[0] || {}).map(key => (
-                          <option key={key} value={key}>{key}</option>
-                        ))}
-                      </select>
+                      <label className="block text-lg font-semibold text-gray-700 mb-2">Node Value Field</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Select Value Field..."
+                          value={treeValueSearch || treeValueKey}
+                          onFocus={() => setTreeValueDropdownOpen(true)}
+                          onBlur={() => setTimeout(() => setTreeValueDropdownOpen(false), 150)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setTreeValueSearch(value);
+                            setTreeValueDropdownOpen(true);
+                            if (value.trim() === "") {
+                              setTreeValueKey("");
+                            }
+                          }}
+                          className="w-full p-3 border border-gray-300 rounded-lg pr-10 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
+                        />
+                        <ChevronDown
+                          size={16}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                        />
+                      </div>
+
+                      {treeValueDropdownOpen && (
+                        <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
+                             style={{ animation: 'fadeIn 0.2s ease-out' }}>
+                          {Object.keys(data[0] || {})
+                            .filter((key) => key.toLowerCase().includes((treeValueSearch || '').toLowerCase()))
+                            .map((key) => (
+                              <div
+                                key={key}
+                                onMouseDown={() => {
+                                  setTreeValueKey(key);
+                                  setTreeValueSearch('');
+                                  setTreeValueDropdownOpen(false);
+                                }}
+                                className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
+                              >
+                                <div className="font-medium text-gray-900 text-base">{key}</div>
+                              </div>
+                            ))}
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
-
-
-
               </div>
             </div>
         </motion.div>
-      )}
+        )}
 
         <motion.div 
           className="control-section"
@@ -977,7 +712,10 @@ const Dashboard = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <h3 className="section-title underline">Chart Selection</h3>
+          <h3 className="text-2xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-emerald-200">
+            <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Chart</span> Selection
+          </h3>
+          
           <motion.input
             type="text"
             className="search-input"
@@ -1033,19 +771,23 @@ const Dashboard = () => {
         animate="visible"
         variants={contentVariants}
       >
-        <motion.div 
-          className="header"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="page-title">Advanced Data Visualization</h1>
-          <p className="page-description">
-            {data
-              ? `Showing ${chartTypes[chartType].label} visualization of your data`
-              : 'Upload data to get started with visualization'}
-          </p>
-        </motion.div>
+        {!data && !sheetModalOpen && (
+          <motion.div 
+            className="header"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight relative mb-4">
+                Transform Your <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Data</span> into Beautiful <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Visualizations</span>
+              </h1>
+            </div>
+            <p className="text-xl text-gray-600 leading-relaxed">
+              Upload your data to get started with creating stunning visualizations that tell your story
+            </p>
+          </motion.div>
+        )}
         <motion.div
           className="chart-section mb-8"
           initial={{ scale: 0.95, opacity: 0 }}
@@ -1053,71 +795,299 @@ const Dashboard = () => {
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           {data && data.length > 0 && (
-            <div className="flex justify-end mb-4" ref={menuRef}>
-              <div className="relative inline-block text-left">
-                <motion.button
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-md transition flex items-center gap-2 shadow-sm"
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                >
-                  <Download size={18} />
-                  <span>Export Chart</span>
-                </motion.button>
-
-                <AnimatePresence>
-                  {isMenuOpen && (
-                    <motion.div
-                      className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10 overflow-hidden"
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {exportOptions.map(({ type, label, icon }) => (
-                        <motion.button
-                          key={type}
-                          onClick={() => {
-                            exportChart(type);
-                            setIsMenuOpen(false);
-                          }}
-                          className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                          whileHover={{ backgroundColor: "#f3f4f6" }}
-                          role="menuitem"
+            <>
+              {data.length > 10000 && (
+                <>
+                  
+                  {/* Dataset Info Bar */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        
+                        {/* Performance indicators */}
+                        {data.length > 10000 && (
+                          <div className="flex items-center gap-2 text-amber-700 bg-amber-100 px-2 py-1 rounded">
+                            <span className="text-sm font-medium">Performance optimizations active</span>
+                          </div>
+                        )}
+                        
+                        {data.length > 50000 && (
+                          <div className="flex items-center gap-2 text-red-700 bg-red-100 px-2 py-1 rounded">
+                            <span className="text-sm font-medium">Large dataset - data sampling enabled</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+              
+              <div className="flex justify-end items-center gap-6 mb-6" ref={menuRef}>
+                {/* Enhanced Chart Controls with Premium Glass Morphism */}
+                <div className="flex items-center gap-6 bg-white/90 backdrop-blur-lg rounded-3xl p-2 shadow-2xl border border-white/20 ring-1 ring-emerald-100/30 hover:shadow-emerald-100/20 transition-all duration-500">
+                  
+                  {/* Zoom Controls Section */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent tracking-wide">
+                        Zoom Control
+                      </span>
+                    </div>
+                    <div className="flex gap-2 bg-gradient-to-r from-gray-50/90 to-gray-100/90 backdrop-blur-sm rounded-2xl p-3 border border-white/40 shadow-inner">
+                      <motion.button
+                        title="Zoom In (Ctrl + +)"
+                        onClick={() => chartAreaRef.current?.zoomIn()}
+                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-100/80 hover:from-emerald-100 hover:to-emerald-200 text-emerald-700 hover:text-emerald-800  shadow-lg hover:shadow-emerald-200/50 border border-emerald-200/50 hover:border-emerald-300 group backdrop-blur-sm"
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <i className="fa-solid fa-plus text-base group-hover:scale-125 transition-transform"></i>
+                      </motion.button>
+                      <motion.button
+                        title="Zoom Out (Ctrl + -)"
+                        onClick={() => chartAreaRef.current?.zoomOut()}
+                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-100/80 hover:from-emerald-100 hover:to-emerald-200 text-emerald-700 hover:text-emerald-800  shadow-lg hover:shadow-emerald-200/50 border border-emerald-200/50 hover:border-emerald-300 group backdrop-blur-sm"
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <i className="fa-solid fa-minus text-base group-hover:scale-125 transition-transform "></i>
+                      </motion.button>
+                      <motion.button
+                        title="Reset Zoom (Ctrl + 0)"
+                        onClick={() => chartAreaRef.current?.resetZoom()}
+                        className="w-12 h-12 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50/80 to-emerald-100/80 hover:from-emerald-100 hover:to-emerald-200 text-emerald-700 hover:text-emerald-800  shadow-lg hover:shadow-emerald-200/50 border border-emerald-200/50 hover:border-emerald-300 group backdrop-blur-sm"
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <i className="fa-solid fa-expand text-base group-hover:scale-125 transition-transform "></i>
+                      </motion.button>
+                    </div>
+                  </div>
+                  
+                  {/* Enhanced Separator with Gradient */}
+                  <div className="relative h-12 w-px">
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-300/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/80 via-emerald-200/40 to-transparent blur-sm"></div>
+                  </div>
+                  
+                  {/* Tool Mode Controls */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-emerald-500 to-emerald-600 bg-clip-text text-transparent tracking-wide">
+                        Tool Mode
+                      </span>
+                    </div>
+                    <div className="flex gap-2 bg-gradient-to-r from-gray-50/90 to-gray-100/90 backdrop-blur-sm rounded-2xl p-3 border border-white/40 shadow-inner">
+                      <motion.button
+                        title="Default Cursor"
+                        onClick={() => setToolMode('default')}
+                        className={`w-12 h-12 flex items-center justify-center rounded-xl backdrop-blur-sm ${
+                          toolMode === 'default'
+                            ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-300/30 scale-95 ring-emerald-300/50'
+                            : 'bg-gradient-to-br from-white/80 to-gray-50/80 hover:from-emerald-50 hover:to-emerald-100 text-gray-600 hover:text-emerald-700 border border-gray-200/60 hover:border-emerald-300/60 shadow-md hover:shadow-emerald-100/30'
+                        }`}
+                        whileHover={{ scale: toolMode === 'default' ? 0.9 : 1.15 }}
+                        whileTap={{ scale: 0.85 }}
+                      >
+                        <i className={`fa-solid fa-arrow-pointer text-base ${toolMode === 'default' ? 'scale-110' : ''}`}></i>
+                      </motion.button>
+                      <motion.button
+                        title="Pan Mode - Click and drag to navigate"
+                        onClick={() => setToolMode('pan')}
+                        className={`w-12 h-12 flex items-center justify-center rounded-xl  backdrop-blur-sm ${
+                          toolMode === 'pan' 
+                            ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-300/30 scale-95  ring-emerald-300/50 ' 
+                            : 'bg-gradient-to-br from-white/80 to-gray-50/80 hover:from-emerald-50 hover:to-emerald-100 text-gray-600 hover:text-emerald-700 border border-gray-200/60 hover:border-emerald-300/60 shadow-md hover:shadow-emerald-100/30'
+                        }`}
+                        whileHover={{ scale: toolMode === 'pan' ? 0.9 : 1.15 }}
+                        whileTap={{ scale: 0.85 }}
+                      >
+                        <i className={`fa-solid fa-hand text-base  ${toolMode === 'pan' ? 'scale-110' : ''}`}></i>
+                      </motion.button>
+                      <motion.button
+                        title="Pointer Mode - Precise selection and interaction"
+                        onClick={() => setToolMode('pointer')}
+                        className={`w-12 h-12 flex items-center justify-center rounded-xl  backdrop-blur-sm ${
+                          toolMode === 'pointer' 
+                            ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-300/30 scale-95  ring-emerald-300/50 ' 
+                            : 'bg-gradient-to-br from-white/80 to-gray-50/80 hover:from-emerald-50 hover:to-emerald-100 text-gray-600 hover:text-emerald-700 border border-gray-200/60 hover:border-emerald-300/60 shadow-md hover:shadow-emerald-100/30'
+                        }`}
+                        whileHover={{ scale: toolMode === 'pointer' ? 0.9 : 1.15 }}
+                        whileTap={{ scale: 0.85 }}
+                      >
+                        <i className={`fa-solid fa-crosshairs text-base ${toolMode === 'pointer' ? 'scale-110' : ''}`}></i>
+                      </motion.button>
+                    </div>
+                  </div>
+                  
+                  {/* Enhanced Separator with Gradient */}
+                  <div className="relative h-12 w-px">
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-300/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/80 via-emerald-200/40 to-transparent blur-sm"></div>
+                  </div>
+                  
+                  {/* Premium Color Customization */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl font-bold bg-gradient-to-r from-teal-600 via-emerald-500 to-emerald-600 bg-clip-text text-transparent tracking-wide">
+                        Color Palette
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 bg-gradient-to-r from-gray-50/90 to-gray-100/90 backdrop-blur-sm rounded-2xl p-2 border border-white/40 shadow-inner">
+                      <div className="relative group">
+                        <motion.div
+                          className="relative p-1 rounded-xl border-2 border-white/80 shadow-xl hover:shadow-2xl bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm"
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
                         >
-                          <span className="text-emerald-600">{icon}</span>
-                          <span>{label}</span>
-                        </motion.button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                          <input
+                            type="color"
+                            value={chartColors.primary}
+                            onChange={(e) => setChartColors(prev => ({ ...prev, primary: e.target.value }))}
+                            className="w-10 h-10 rounded-lg cursor-pointer appearance-none border-none shadow-lg"
+                            title="Primary Chart Color"
+                          />
+                          <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
+                        </motion.div>
+                        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-lg font-semibold text-gray-700 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-xl border border-gray-200/60 ring-1 ring-emerald-100/30">
+                          Chart Color
+                        </div>
+                      </div>
+                      <div className="relative group">
+                        <motion.div
+                          className="relative p-1 rounded-xl border-2 border-white/80 shadow-xl hover:shadow-2xl bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm"
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <input
+                            type="color"
+                            value={chartColors.text}
+                            onChange={(e) => setChartColors(prev => ({ ...prev, text: e.target.value }))}
+                            className="w-10 h-10 rounded-lg cursor-pointer appearance-none border-none shadow-lg"
+                            title="Text Color"
+                          />
+                          <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
+                        </motion.div>
+                        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-lg font-semibold text-gray-700 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-xl border border-gray-200/60 ring-1 ring-emerald-100/30">
+                          Text Color
+                        </div>
+                      </div>
+                      <div className="relative group">
+                        <motion.div
+                          className="relative p-1 rounded-xl border-2 border-white/80 shadow-xl hover:shadow-2xl bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm"
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <input
+                            type="color"
+                            value={chartColors.axis}
+                            onChange={(e) => setChartColors(prev => ({ ...prev, axis: e.target.value }))}
+                            className="w-10 h-10 rounded-lg cursor-pointer appearance-none border-none shadow-lg"
+                            title="Axis Color"
+                          />
+                          <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
+                        </motion.div>
+                        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-lg font-semibold text-gray-700 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-xl border border-gray-200/60 ring-1 ring-emerald-100/30">
+                          Axis Color
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Premium Export Button */}
+                <div className="relative inline-block text-left" ref={exportDropdownRef}>
+                  <motion.button
+                    className="relative bg-gradient-to-br from-emerald-600/95 via-emerald-500/95 to-teal-500/95 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-500 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-emerald-300/30 border border-emerald-400/30 backdrop-blur-sm overflow-hidden min-h-[48px] min-w-[100px]"
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Download size={20} className="drop-shadow-md" />
+                    <span className="font-bold text-lg">Export</span>
+                    <motion.i 
+                      className="fa-solid fa-chevron-down text-base ml-1"
+                      animate={{ rotate: isMenuOpen ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </motion.button>
+
+                  <AnimatePresence>
+                    {isMenuOpen && (
+                      <motion.div
+                        className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-lg border border-white/20 rounded-xl shadow-xl z-30 overflow-hidden ring-1 ring-emerald-100/30"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        transition={{ duration: 0.3, ease: "easeOut" }}
+                      >
+                        <div className="p-3">
+                          <div className="text-xs font-bold text-gray-500 uppercase tracking-widest px-4 py-3 mb-2 border-b border-gray-200/50 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 rounded-2xl">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl font-bold bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent tracking-wide">
+                                Export Options
+                              </span>
+                            </div>
+                          </div>
+                          {exportOptions.map(({ type, label, icon }, index) => (
+                            <motion.button
+                              key={type}
+                              onClick={() => {
+                                exportChart(type);
+                                setIsMenuOpen(false);
+                              }}
+                              className="flex items-center gap-4 w-full text-left px-4 py-4 text-base font-semibold text-gray-700 hover:bg-gradient-to-r hover:from-emerald-50/80 hover:via-teal-50/60 hover:to-emerald-50/80 hover:text-emerald-700 rounded-2xl transition-all duration-300 group backdrop-blur-sm border border-transparent hover:border-emerald-200/30 shadow-lg hover:shadow-emerald-200/50 mb-2"
+                              initial={{ opacity: 0, x: 0 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              role="menuitem"
+                            >
+                              <span className="text-emerald-600 group-hover:text-emerald-700 group-hover:scale-115 transition-all w-6 flex justify-center">
+                                {icon}
+                              </span>
+                              <span className="flex-1 tracking-wide text-lg">{label}</span>
+                              <i className="fa-solid fa-arrow-right text-sm opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-emerald-600"></i>
+                            </motion.button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
-            </div>
+            </>
           )}
           
           {/* Chart container with the ChartArea component */}
             {data ? (
               <ChartArea
+                ref={chartAreaRef}
                 data={data}
                 chartType={chartType}
                 xKey={xKey}
                 yKey={yKey}
                 zKey={zKey}
                 groupKey={groupKey}
-                treeNameKey={treeNameKey} // optional if needed
+                treeNameKey={treeNameKey} 
                 treeValueKey={treeValueKey}
-                treeParentKey={treeParentKey} // optional for parent-based trees
+                treeParentKey={treeParentKey} 
                 treeHierarchyKeys={treeHierarchyKeys}
+                toolMode={toolMode}
+                chartColors={chartColors}
               />
              
             ) : (
               <div className="flex flex-col items-center justify-center p-12 ml-4 text-center bg-white rounded-lg shadow-md">
                 <div className="text-gray-400 mb-4">
-                  {chartTypes[chartType].icon && React.cloneElement(chartTypes[chartType].icon, { size: 48 })}
+                  {ChartTypes[chartType].icon && React.cloneElement(ChartTypes[chartType].icon, { size: 48 })}
                 </div>
                 <p className="text-gray-500 text-lg">
-                  Upload data to generate a {chartTypes[chartType].label}
+                  Upload data to generate a {ChartTypes[chartType].label}
                 </p>
               </div>
             )}
@@ -1131,31 +1101,70 @@ const Dashboard = () => {
           transition={{ delay: 0.4, duration: 0.5 }}
         >
           <div className="table-header mb-2">
-            <h2 className="text-3xl font-semibold mb-2">Data Table</h2>
-            <div className="p-2 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Data</span> Table
+            </h2>
+            <div className="border-b border-emerald-100 flex flex-col sm:flex-row justify-between items-start gap-6">
+            {/* Search and Stats Section */}
             {data && data.length > 0 && (
-              <div className="flex gap-3">
-                <button
+              <div className="flex flex-col gap-4 flex-1">
+                <div className="flex items-center gap-4">
+                  <div className="relative flex-1 max-w-md">
+                    <input
+                      type="text"
+                      placeholder="Search data..."
+                      value={searchQueryDataTable}
+                      onChange={(e) => setSearchQueryDataTable(e.target.value)}
+                      className="w-full pl-12 px-6 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-base"
+                    />
+                    <i className="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                  </div>
+                  
+                    <div className="items-center gap-3 px-6 py-3 text-gray-600 bg-gray-50 rounded-lg border">
+                      <span className="font-bold">{data.length}</span> total records
+                    </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Export Buttons Section */}
+            {data && data.length > 0 && (
+              <div className="flex flex-wrap gap-3 items-center">
+                <motion.button
                   onClick={exportToCSV}
-                  className="flex items-center gap-3 px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 text-lg font-medium transition-colors"
+                  className="flex items-center gap-3 px-6 py-3  hover:to-teal-100 border-2 border-emerald-200 hover:border-emerald-300 rounded-xl text-emerald-700 hover:text-emerald-800 text-base font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 group"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  disabled={loading}
                 >
-                  <FileText size={18} />
-                  CSV
-                </button>
-                <button
+                  <FileText size={20} className="transition-transform duration-300" />
+                  <span>Export CSV</span>
+                  {loading && <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />}
+                </motion.button>
+                
+                <motion.button
                   onClick={exportToJSON}
-                  className="flex items-center gap-3 px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 text-lg font-medium transition-colors"
+                  className="flex items-center gap-3 px-6 py-3  hover:to-teal-100 border-2 border-emerald-200 hover:border-emerald-300 rounded-xl text-emerald-700 hover:text-emerald-800 text-base font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 group"
+                  whileHover={{ scale: 1.05}}
+                  whileTap={{ scale: 0.98 }}
+                  disabled={loading}
                 >
-                  <FileJson size={18} />
-                  JSON
-                </button>
-                <button
+                  <FileJson size={20} className="transition-transform duration-300" />
+                  <span>Export JSON</span>
+                  {loading && <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />}
+                </motion.button>
+                
+                <motion.button
                   onClick={exportToExcel}
-                  className="flex items-center gap-3 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-white text-lg font-medium transition-colors"
+                  className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-emerald-600/95 to-teal-500/95 hover:to-emerald-400 rounded-xl text-white text-base font-semibold transition-all duration-300 hover:shadow-lg hover:scale-105 group border-2 border-green-500/20"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  disabled={loading}
                 >
-                  <Download size={18} />
-                  Excel
-                </button>
+                  <Download size={20} className="transition-transform duration-300" />
+                  <span>Export Excel</span>
+                  {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                </motion.button>
               </div>
             )}
             </div>
@@ -1165,21 +1174,6 @@ const Dashboard = () => {
           </div>
         </motion.div>
       </motion.main>
-
-      {/* Notification Animation */}
-      <AnimatePresence>
-        {showNotification && (
-          <motion.div
-            className="upload-notification success"
-            variants={notificationVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            Data successfully processed and ready for visualization!
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
 );
 };

@@ -27,7 +27,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--navbar-background-color);
+  background: linear-gradient(to right, #059669, #0d9488);
   border-radius: 10px;
   border: 3px solid #e5ffe7; 
 }
@@ -81,38 +81,6 @@ body {
   align-items: center;
 }
 
-.navbar ul {
-  display: flex;
-  list-style: none;
-  margin-left: 450px;
-  align-items: center;
-  text-align: right;
-  width: fit-content;
-}
-
-.navbar ul li {
-  margin-left: 20px;
-}
-
-.navbar ul li a {
-  color: var(--link-color);
-  text-decoration: none;
-  font-size: 1.8rem;
-  transition: color 0.3s ease;
-}
-
-.navbar a:hover{
-text-decoration: none;
-}
-
-.navbar ul li a:hover {
-  color: var(--link-hover-color);
-  text-decoration: underline;
-}
-
-.nav-link.active {
-  text-decoration: underline;
-}
 
 .logo{
   display: flex;
