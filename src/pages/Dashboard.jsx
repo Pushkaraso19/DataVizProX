@@ -6,7 +6,7 @@ import FileUpload from '../components/dashboardComponents/FileUpload';
 import ChartArea from '../components/dashboardComponents/ChartArea';
 import DataTable from '../components/dashboardComponents/DataTable';
 import ExcelJS from 'exceljs'
-import { Download, FileJson, FileText, FileImage, Image, Code2, ChevronDown } from 'lucide-react';
+import { Download, FileJson, FileText, FileImage, Image, Code2, ChevronDown, RotateCcw } from 'lucide-react';
 import './Dashboard.css';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -93,8 +93,6 @@ const Dashboard = () => {
       try {
         // Validate data structure
         const headers = Object.keys(processedData[0]);
-        console.log('Data headers:', headers);
-        console.log(`Dataset size: ${processedData.length} rows, ${headers.length} columns`);
         
         // Performance warning for very large datasets
         if (processedData.length > 50000) {
@@ -291,7 +289,40 @@ const Dashboard = () => {
       } else if (type === 'svg') {
         const svg = chart.querySelector('svg');
         if (svg) {
-          const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
+          // Inline computed styles for all SVG elements
+          function inlineAllStyles(el) {
+            const win = document.defaultView;
+            if (!win || !el) return;
+            if (el.nodeType === 1) {
+              const computed = win.getComputedStyle(el);
+              let styleStr = '';
+              for (let i = 0; i < computed.length; i++) {
+                const key = computed[i];
+                const value = computed.getPropertyValue(key);
+                // Only inline relevant styles
+                if (key.startsWith('stroke') || key.startsWith('fill') || key.startsWith('font') || key === 'opacity' || key === 'color' || key === 'display' || key === 'alignment-baseline') {
+                  styleStr += `${key}:${value};`;
+                }
+              }
+              el.setAttribute('style', styleStr);
+            }
+            // Recursively inline for children
+            for (let j = 0; j < el.childNodes.length; j++) {
+              inlineAllStyles(el.childNodes[j]);
+            }
+          }
+          inlineAllStyles(svg);
+          // Serialize SVG with inlined styles
+          const serializer = new XMLSerializer();
+          let svgString = serializer.serializeToString(svg);
+          // Add XML declaration and SVG namespace if missing
+          if (!svgString.startsWith('<?xml')) {
+            svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+          }
+          if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
+            svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+          }
+          const blob = new Blob([svgString], { type: 'image/svg+xml' });
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -556,10 +587,8 @@ const Dashboard = () => {
     scatter: { 
       x: "X-Axis", 
       y: "Y-Axis", 
-      group: "Group", 
       xFilter: "numeric", 
-      yFilter: "numeric", 
-      groupFilter: "text" 
+      yFilter: "numeric"
     },
     
     // Time-based Charts
@@ -858,7 +887,7 @@ const Dashboard = () => {
                         whileHover={{ scale: 1.15 }}
                         whileTap={{ scale: 0.9 }}
                       >
-                        <i className="fa-solid fa-expand text-base group-hover:scale-125 transition-transform "></i>
+                        <RotateCcw size={15} className="group-hover:scale-125 transition-transform" />
                       </motion.button>
                     </div>
                   </div>
@@ -960,7 +989,7 @@ const Dashboard = () => {
                         </div>
                       </div>
                       {/* Conditionally render Axis Color picker - hide for charts without traditional axes */}
-                      {!['pie', 'radar'].includes(chartType) && (
+                      {!['pie', 'radar', 'calendarHeatmap'].includes(chartType) && (
                         <div className="relative group">
                           <motion.div
                             className="relative p-1 rounded-xl border-2 border-white/80 shadow-xl hover:shadow-2xl bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm"

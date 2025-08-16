@@ -108,7 +108,7 @@ const Home = () => {
       {/* Features Section */}
       <FeatureSection />
 
-      {/* Demo Section */}
+      {/* Demo Section
       <section className="py-16 w-full" id="demo">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-800 mb-4">Watch the Live Demo</h2>
@@ -119,7 +119,7 @@ const Home = () => {
         <div className="bg-white rounded-xl shadow-xl p-8 mx-auto">
           <DemoVideo />
         </div>
-      </section>
+      </section> */}
 
       {/* CTA Section */}
       <motion.section 

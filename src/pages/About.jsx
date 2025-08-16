@@ -531,7 +531,7 @@ const About = () => {
                   className="border-2 border-white text-white font-bold py-3 px-6 rounded-xl hover:bg-white hover:text-emerald-600 transition-all"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => navigate('/')}
+                  onClick={() => featureRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 >
                   View Features
                 </motion.button>

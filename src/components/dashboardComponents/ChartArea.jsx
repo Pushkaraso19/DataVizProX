@@ -1,7 +1,9 @@
+
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import * as d3 from 'd3';
 import './ChartArea.css';
 import chartUtils from '../../utils/chartUtils';
+import tooltipUtils from '../../utils/tooltipUtils';
 
 
 const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, treeNameKey, treeValueKey, treeParentKey, treeHierarchyKeys, toolMode: propToolMode, chartColors }, ref) => {
@@ -511,38 +513,23 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       // Enhanced hover interactions
       bars
         .on('mouseover', function(event, d) {
-          const rect = this.getBoundingClientRect();
-          const tooltipX = rect.left + rect.width / 2 + window.scrollX;
-          const tooltipY = rect.top + window.scrollY;
           const fillColor = d3.select(this).attr('fill');
-          
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .attr('opacity', 1)
-            .attr('stroke', d3.color(chartColors.primary).darker(1))
-            .attr('stroke-width', 2);
-            
+          d3.select(this).transition().duration(200).attr('opacity', 1);
           const tooltipContent = `
-            <div style="display:flex;align-items:center;margin-bottom:8px;"><span style="display:inline-block;width:14px;height:14px;background:${fillColor};border-radius:3px;margin-right:6px;"></span><strong>${d[xKeyUsed]}</strong></div>
+            <div style="display:flex;align-items:center;margin-bottom:8px;">
+              <span style="display:inline-block;width:14px;height:14px;background:${fillColor};border-radius:3px;margin-right:6px;"></span>
+              <strong>${d[xKeyUsed]}</strong>
+            </div>
             <div><strong>${yKeyUsed}:</strong> ${d[yKeyUsed].toLocaleString()}</div>
           `;
-          
-          tooltip
-            .style('opacity', 1)
-            .style('left', `${tooltipX + 8}px`)
-            .style('top', `${tooltipY - 50}px`)
-            .html(tooltipContent);
+          tooltipUtils.show(tooltip, tooltipContent, event);
+        })
+        .on('mousemove', function(event) {
+          tooltipUtils.move(tooltip, event);
         })
         .on('mouseout', function() {
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .attr('opacity', 0.8)
-            .attr('stroke', chartColors.axis || '#666')
-            .attr('stroke-width', 0.5);
-            
-          tooltip.style('opacity', 0);
+          d3.select(this).transition().duration(200).attr('opacity', 0.8);
+          tooltipUtils.hide(tooltip);
         });
       
       // Animate bars
@@ -658,20 +645,24 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         .attr('height', d => height - yScale(+d[yKeyUsed]))
         .attr('fill', color(group))
         .on('mouseover', function (event, d) {
-          const rect = this.getBoundingClientRect();
-          const tooltipX = rect.left + rect.width / 2 + window.scrollX;
-          const tooltipY = rect.top + window.scrollY;
           const fillColor = d3.select(this).attr('fill');
           d3.select(this).attr('opacity', 0.8).attr('stroke', (chartColors && chartColors.axis) || '#333').attr('stroke-width', 2);
-          tooltip
-            .style('opacity', 1)
-            .style('left', `${tooltipX + 8}px`)
-            .style('top', `${tooltipY - 50}px`)
-            .html(`<div style="display:flex;align-items:center;margin-bottom:8px;"><span style="display:inline-block;width:14px;height:14px;background:${fillColor};border-radius:3px;margin-right:6px;"></span><strong>${d[groupKeyUsed]}</strong></div><div><strong>${xKeyUsed}:</strong> ${d[xKeyUsed]}</div><div><strong>${yKeyUsed}:</strong> ${d[yKeyUsed]}</div>`);
+          const tooltipContent = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+              <div style="width: 10px; height: 10px; background-color: ${fillColor}; border-radius: 3px; margin-right: 8px;"></div>
+              <div style="font-weight: bold;">${d[groupKeyUsed]}</div>
+            </div>
+            <div>${xKeyUsed}: <strong>${d[xKeyUsed]}</strong></div>
+            <div>${yKeyUsed}: <strong>${d[yKeyUsed]}</strong></div>
+          `;
+          tooltipUtils.show(tooltip, tooltipContent, event);
+        })
+        .on('mousemove', function(event) {
+          tooltipUtils.move(tooltip, event);
         })
         .on('mouseout', function () {
           d3.select(this).attr('opacity', 1).attr('stroke', 'none');
-          tooltip.style('opacity', 0);
+          tooltipUtils.hide(tooltip);
         });
     });
 
@@ -829,33 +820,9 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       // Enhanced hover interactions
       circles
         .on('mouseover', function(event, d) {
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .attr('r', 8)
-            .attr('stroke', d3.color(chartColors.primary).darker(1))
-            .attr('stroke-width', 3);
-            
-          // Get mouse position relative to the point
-          const rect = event.target.getBoundingClientRect();
-          const tooltipX = rect.left + window.scrollX;
-          const tooltipY = rect.top + window.scrollY - 10;
-          
-          tooltip
-            .style('left', tooltipX + 'px')
-            .style('top', tooltipY + 'px')
-            .style('opacity', 1)
-            .html(`
-              <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <div style="width: 10px; height: 10px; background-color: ${chartColors.primary}; border-radius: 50%; margin-right: 8px;"></div>
-                <div style="font-weight: bold;">${d[xKeyUsed]}</div>
-              </div>
-              <div>${yKeyUsed}: <strong>${d[yKeyUsed].toLocaleString()}</strong></div>
-            `);
-          
-          // Add hover line
-          svg.append('line')
-            .attr('class', 'hover-line')
+          d3.select(this).transition().duration(200).attr('r', 8);
+          svg.selectAll('.hover-line').remove();
+          svg.append('line').attr('class', 'hover-line')
             .attr('x1', xScale(isDate ? new Date(d[xKeyUsed]) : (isNumeric ? parseFloat(d[xKeyUsed]) : d[xKeyUsed])))
             .attr('x2', xScale(isDate ? new Date(d[xKeyUsed]) : (isNumeric ? parseFloat(d[xKeyUsed]) : d[xKeyUsed])))
             .attr('y1', 0)
@@ -864,17 +831,22 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
             .attr('stroke-width', 1)
             .attr('stroke-dasharray', '3,3')
             .attr('opacity', 0.7);
+          const tooltipContent = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+              <div style="width: 10px; height: 10px; background-color: ${chartColors.primary}; border-radius: 50%; margin-right: 8px;"></div>
+              <div style="font-weight: bold;">${d[xKeyUsed]}</div>
+            </div>
+            <div>${yKeyUsed}: <strong>${d[yKeyUsed].toLocaleString()}</strong></div>
+          `;
+          tooltipUtils.show(tooltip, tooltipContent, event);
+        })
+        .on('mousemove', function(event) {
+          tooltipUtils.move(tooltip, event);
         })
         .on('mouseout', function() {
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .attr('r', 5)
-            .attr('stroke', 'white')
-            .attr('stroke-width', 2);
-            
-          tooltip.style('opacity', 0);
+          d3.select(this).transition().duration(200).attr('r', 5);
           svg.selectAll('.hover-line').remove();
+          tooltipUtils.hide(tooltip);
         });
       
       // Animate circles
@@ -933,13 +905,11 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
 
   const generateAreaChart = (svg, width, height, data, tooltip, margin, xKey, yKey, groupKey, chartColors) => {
     try {
-      // Validate data
       chartUtils.validateData(data);
       
       const xKeyUsed = xKey || Object.keys(data[0])[0];
       const yKeyUsed = yKey || Object.keys(data[0])[1];
 
-      // Process data with proper type conversion and sorting
       const processedData = data.map(d => ({
         ...d,
         [xKeyUsed]: d[xKeyUsed],
@@ -950,7 +920,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         throw new Error('No valid numeric data found');
       }
       
-      // Sort data if x-axis contains dates or numbers
       const firstXValue = processedData[0][xKeyUsed];
       const isDate = !isNaN(Date.parse(firstXValue));
       const isNumeric = !isNaN(parseFloat(firstXValue));
@@ -964,7 +933,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       const xValues = processedData.map(d => d[xKeyUsed]);
       const yValues = processedData.map(d => d[yKeyUsed]);
       
-      // Create scales
       let xScale;
       if (isDate) {
         xScale = d3.scaleTime()
@@ -987,7 +955,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         .range([height, 0])
         .nice();
       
-      // Create gradient definition
       const gradient = svg.append("defs")
         .append("linearGradient")
         .attr("id", "area-gradient")
@@ -1005,27 +972,23 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         .attr("stop-color", chartColors.primary)
         .attr("stop-opacity", 0.8);
       
-      // Create area generator
       const area = d3.area()
         .x(d => xScale(isDate ? new Date(d[xKeyUsed]) : (isNumeric ? parseFloat(d[xKeyUsed]) : d[xKeyUsed])))
         .y0(height)
         .y1(d => yScale(d[yKeyUsed]))
         .curve(d3.curveMonotoneX);
       
-      // Create line generator for top border
       const line = d3.line()
         .x(d => xScale(isDate ? new Date(d[xKeyUsed]) : (isNumeric ? parseFloat(d[xKeyUsed]) : d[xKeyUsed])))
         .y(d => yScale(d[yKeyUsed]))
         .curve(d3.curveMonotoneX);
       
-      // Add area with animation
       const areaPath = svg.append('path')
         .datum(processedData)
         .attr('fill', 'url(#area-gradient)')
         .attr('stroke', 'none')
         .attr('d', area);
       
-      // Add line border
       const linePath = svg.append('path')
         .datum(processedData)
         .attr('fill', 'none')
@@ -1035,7 +998,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         .attr('stroke-linejoin', 'round')
         .attr('d', line);
       
-      // Animate area and line
       const pathLength = linePath.node().getTotalLength();
       linePath
         .attr('stroke-dasharray', pathLength)
@@ -1045,7 +1007,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         .ease(d3.easeQuadInOut)
         .attr('stroke-dashoffset', 0);
       
-      // Animate area fill
       areaPath
         .style('opacity', 0)
         .transition()
@@ -1053,7 +1014,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         .duration(1000)
         .style('opacity', 1);
       
-      // Add data points
       const circles = svg.selectAll('.data-point')
         .data(processedData)
         .enter()
@@ -1067,36 +1027,11 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         .attr('stroke-width', 2)
         .style('cursor', 'pointer');
       
-      // Enhanced hover interactions
       circles
         .on('mouseover', function(event, d) {
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .attr('r', 8)
-            .attr('stroke', d3.color(chartColors.primary).darker(1))
-            .attr('stroke-width', 3);
-            
-          // Get mouse position relative to the point
-          const rect = event.target.getBoundingClientRect();
-          const tooltipX = rect.left + window.scrollX;
-          const tooltipY = rect.top + window.scrollY - 10;
-          
-          tooltip
-            .style('left', tooltipX + 'px')
-            .style('top', tooltipY + 'px')
-            .style('opacity', 1)
-            .html(`
-              <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <div style="width: 10px; height: 10px; background-color: ${chartColors.primary}; border-radius: 50%; margin-right: 8px;"></div>
-                <div style="font-weight: bold;">${d[xKeyUsed]}</div>
-              </div>
-              <div>${yKeyUsed}: <strong>${d[yKeyUsed].toLocaleString()}</strong></div>
-            `);
-          
-          // Add hover line
-          svg.append('line')
-            .attr('class', 'hover-line')
+          d3.select(this).transition().duration(200).attr('r', 8);
+          svg.selectAll('.hover-line').remove();
+          svg.append('line').attr('class', 'hover-line')
             .attr('x1', xScale(isDate ? new Date(d[xKeyUsed]) : (isNumeric ? parseFloat(d[xKeyUsed]) : d[xKeyUsed])))
             .attr('x2', xScale(isDate ? new Date(d[xKeyUsed]) : (isNumeric ? parseFloat(d[xKeyUsed]) : d[xKeyUsed])))
             .attr('y1', 0)
@@ -1105,17 +1040,22 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
             .attr('stroke-width', 1)
             .attr('stroke-dasharray', '3,3')
             .attr('opacity', 0.7);
+          const tooltipContent = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+              <div style="width: 10px; height: 10px; background-color: ${chartColors.primary}; border-radius: 50%; margin-right: 8px;"></div>
+              <div style="font-weight: bold;">${d[xKeyUsed]}</div>
+            </div>
+            <div>${yKeyUsed}: <strong>${d[yKeyUsed].toLocaleString()}</strong></div>
+          `;
+          tooltipUtils.show(tooltip, tooltipContent, event);
+        })
+        .on('mousemove', function(event) {
+          tooltipUtils.move(tooltip, event);
         })
         .on('mouseout', function() {
-          d3.select(this)
-            .transition()
-            .duration(200)
-            .attr('r', 4)
-            .attr('stroke', 'white')
-            .attr('stroke-width', 2);
-            
-          tooltip.style('opacity', 0);
+          d3.select(this).transition().duration(200).attr('r', 4);
           svg.selectAll('.hover-line').remove();
+          tooltipUtils.hide(tooltip);
         });
       
       // Animate circles
@@ -1124,44 +1064,49 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         .delay((d, i) => i * 100 + 1000)
         .duration(500)
         .attr('r', 4);
-      
-      // Add axes with improved formatting
-      const xAxis = svg.append('g')
-        .attr('transform', `translate(0,${height})`)
-        .call(isDate ? d3.axisBottom(xScale).tickFormat(d3.timeFormat('%b %d')) : 
-              isNumeric ? d3.axisBottom(xScale).tickFormat(d3.format('.2s')) : 
-              d3.axisBottom(xScale));
 
-      const yAxis = svg.append('g')
-        .call(d3.axisLeft(yScale).tickFormat(d3.format('.2s')));
-      
-      // Add axis labels
-      svg.append('text')
-        .attr('class', 'axis-title')
-        .attr('text-anchor', 'middle')
-        .attr('x', width / 2)
-        .attr('y', height + margin.bottom - 10)
-        .style('font-size', '14px')
-        .style('font-weight', 'bold')
-        .style('fill', chartColors.text || '#333')
+      // X Axis
+      const xAxis = isDate 
+        ? d3.axisBottom(xScale).tickFormat(d3.timeFormat("%b %d")) 
+        : d3.axisBottom(xScale);
+
+      svg.append("g")
+        .attr("transform", `translate(0,${height})`)
+        .call(xAxis)
+        .call(g => g.selectAll("path, line")
+          .attr("stroke", chartColors.axis || "#666"))
+        .call(g => g.selectAll("text")
+          .attr("fill", chartColors.text || "#333"));
+
+      // Y Axis
+      const yAxis = d3.axisLeft(yScale).ticks(6);
+
+      svg.append("g")
+        .call(yAxis)
+        .call(g => g.selectAll("path, line")
+          .attr("stroke", chartColors.axis || "#666"))
+        .call(g => g.selectAll("text")
+          .attr("fill", chartColors.text || "#333"));
+
+      // Axis Labels
+      svg.append("text")
+        .attr("class", "x-label")
+        .attr("text-anchor", "middle")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom - 5)
+        .style("fill", chartColors.text || "#333")
         .text(xKeyUsed);
-      
-      svg.append('text')
-        .attr('class', 'axis-title')
-        .attr('text-anchor', 'middle')
-        .attr('transform', 'rotate(-90)')
-        .attr('x', -height / 2)
-        .attr('y', -margin.left + 15)
-        .style('font-size', '14px')
-        .style('font-weight', 'bold')
-        .style('fill', chartColors.text || '#333')
+
+      svg.append("text")
+        .attr("class", "y-label")
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", -margin.left + 15)
+        .style("fill", chartColors.text || "#333")
         .text(yKeyUsed);
 
-      // Apply custom styling
-      styleAxes(svg, chartColors);
-      
     } catch (error) {
-      console.error('Error generating area chart:', error);
       svg.append("text")
         .attr("x", width / 2)
         .attr("y", height / 2)
@@ -1245,23 +1190,18 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
             
           const percentage = ((d.data.value / d3.sum(validData, dd => dd.value)) * 100).toFixed(1);
           
-          // Get mouse position relative to the slice
-          const rect = event.target.getBoundingClientRect();
-          const tooltipX = rect.left + window.scrollX;
-          const tooltipY = rect.top + window.scrollY - 10;
-          
-          tooltip
-            .style('left', tooltipX + 'px')
-            .style('top', tooltipY + 'px')
-            .style('opacity', 1)
-            .html(`
-              <div style="display: flex; align-items: center; margin-bottom: 8px;">
-                <div style="width: 10px; height: 10px; background-color: ${colorScale(d.data.category)}; border-radius: 50%; margin-right: 8px;"></div>
-                <div style="font-weight: bold;">${d.data.category}</div>
-              </div>
-              <div>Value: <strong>${d.data.value.toLocaleString()}</strong></div>
-              <div>Percentage: <strong>${percentage}%</strong></div>
-            `);
+          const tooltipContent = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+              <div style="width: 10px; height: 10px; background-color: ${colorScale(d.data.category)}; border-radius: 50%; margin-right: 8px;"></div>
+              <div style="font-weight: bold;">${d.data.category}</div>
+            </div>
+            <div>Value: <strong>${d.data.value.toLocaleString()}</strong></div>
+            <div>Percentage: <strong>${percentage}%</strong></div>
+          `;
+          tooltipUtils.show(tooltip, tooltipContent, event);
+        })
+        .on('mousemove', function(event) {
+          tooltipUtils.move(tooltip, event);
         })
         .on('mouseout', function(event, d) {
           d3.select(this)
@@ -1270,7 +1210,7 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
             .style('opacity', 0.9)
             .attr('transform', 'translate(0, 0)');
             
-          tooltip.style('opacity', 0);
+          tooltipUtils.hide(tooltip);
         });
       
       // Animate slice appearance
@@ -1386,11 +1326,17 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
           .attr('stroke', d3.color(chartColors.primary).darker(1))
           .attr('stroke-width', 2);
           
-        tooltip
-          .style('opacity', 1)
-          .style('left', (event.pageX + 10) + 'px')
-          .style('top', (event.pageY - 28) + 'px')
-          .html(`<strong>${xKeyUsed}: ${d[xKeyUsed]}</strong><br>${yKeyUsed}: ${d[yKeyUsed]}`);
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 10px; background-color: ${chartColors.primary}; border-radius: 50%; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">${xKeyUsed}: ${d[xKeyUsed]}</div>
+          </div>
+          <div>${yKeyUsed}: <strong>${d[yKeyUsed]}</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on('mousemove', function(event) {
+        tooltipUtils.move(tooltip, event);
       })
       .on('mouseout', function() {
         d3.select(this)
@@ -1398,7 +1344,7 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
           .attr('opacity', 0.7)
           .attr('stroke', 'none');
           
-        tooltip.style('opacity', 0);
+        tooltipUtils.hide(tooltip);
       })
       .transition()
       .delay((d, i) => i * 50)
@@ -1473,14 +1419,37 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       .attr("width", x.bandwidth())
       .on("mouseover", function(event, d) {
         d3.select(this).attr("opacity", 1);
-        tooltip.style("opacity", 1)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px")
-          .html(`${d.data[xKeyUsed]}<br>Total: ${d3.sum(keys, k => d.data[k])}`);
+        const currentSegmentKey = d3.select(this.parentNode).datum().key;
+        const currentSegmentValue = d.data[currentSegmentKey];
+        const totalValue = d3.sum(keys, k => +d.data[k]);
+        
+        let segmentsList = keys.map(key => {
+          const value = +d.data[key];
+          const isCurrentSegment = key === currentSegmentKey;
+          return `<div style="${isCurrentSegment ? 'font-weight: bold; background-color: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;' : ''}">
+            <span style="display: inline-block; width: 8px; height: 8px; background-color: ${colorScale(key)}; border-radius: 2px; margin-right: 6px;"></span>
+            ${key}: <strong>${value.toFixed(2)}</strong>
+          </div>`;
+        }).join('');
+        
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 10px; background-color: ${colorScale(currentSegmentKey)}; border-radius: 3px; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">${d.data[xKeyUsed]}</div>
+          </div>
+          <div style="margin-bottom: 8px;">Current: <strong>${currentSegmentKey} = ${currentSegmentValue.toFixed(2)}</strong></div>
+          <div style="margin-bottom: 6px; font-size: 12px; color: #888;">All Segments:</div>
+          ${segmentsList}
+          <div style="border-top: 1px solid #ddd; margin-top: 6px; padding-top: 4px;">Total: <strong>${totalValue.toFixed(2)}</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
       })
       .on("mouseout", function() {
         d3.select(this).attr("opacity", 0.8);
-        tooltip.style("opacity", 0);
+        tooltipUtils.hide(tooltip);
       })
       .attr("opacity", 0.8);
 
@@ -1544,12 +1513,34 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       .attr("height", d => y(d[0]) - y(d[1]))
       .attr("width", x.bandwidth())
       .on("mouseover", function(event, d) {
-        tooltip.style("opacity", 1)
-          .style("left", `${event.pageX + 10}px`)
-          .style("top", `${event.pageY - 28}px`)
-          .html(`${d.data[xKeyUsed]}<br>Segment %: ${(d[1] - d[0]).toFixed(2)}%`);
+        const currentSegmentKey = d3.select(this.parentNode).datum().key;
+        const currentSegmentPercentage = d[1] - d[0];
+        
+        let segmentsList = keys.map(key => {
+          const percentage = d.data[key];
+          const isCurrentSegment = key === currentSegmentKey;
+          return `<div style="${isCurrentSegment ? 'font-weight: bold; background-color: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px;' : ''}">
+            <span style="display: inline-block; width: 8px; height: 8px; background-color: ${colorScale(key)}; border-radius: 2px; margin-right: 6px;"></span>
+            ${key}: <strong>${percentage.toFixed(1)}%</strong>
+          </div>`;
+        }).join('');
+        
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 10px; background-color: ${colorScale(currentSegmentKey)}; border-radius: 3px; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">${d.data[xKeyUsed]}</div>
+          </div>
+          <div style="margin-bottom: 8px;">Current: <strong>${currentSegmentKey} = ${currentSegmentPercentage.toFixed(1)}%</strong></div>
+          <div style="margin-bottom: 6px; font-size: 12px; color: #888;">All Segments:</div>
+          ${segmentsList}
+          <div style="border-top: 1px solid #ddd; margin-top: 6px; padding-top: 4px;">Total: <strong>100.0%</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
       })
-      .on("mouseout", () => tooltip.style("opacity", 0));
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
+      })
+      .on("mouseout", () => tooltipUtils.hide(tooltip));
 
   // Add legend using the same color scale, positioned to the right
   svg._legendRightTransform = `translate(${width + 24}, 20)`;
@@ -1612,24 +1603,28 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       .attr('stroke', strokeColor)
       .attr('stroke-width', 1)
       .on('mouseover', function(event, d) {
-        const rect = this.getBoundingClientRect();
-        const tooltipX = rect.left + rect.width / 2 + window.scrollX;
-        const tooltipY = rect.top + window.scrollY;
         const fillColor = d3.select(this).attr('fill');
         d3.select(this)
           .attr('fill-opacity', 1)
           .attr('stroke-width', 2);
-        tooltip
-          .style('opacity', 1)
-          .style('left', `${tooltipX + 8}px`)
-          .style('top', `${tooltipY - 40}px`)
-          .html(`<div style="display:flex;align-items:center;margin-bottom:8px;"><span style="display:inline-block;width:14px;height:14px;background:${fillColor};border-radius:50%;margin-right:6px;"></span><strong>Bubble Data</strong></div><div><strong>${xKeyUsed}:</strong> ${d[xKeyUsed]}</div><div><strong>${yKeyUsed}:</strong> ${d[yKeyUsed]}</div><div><strong>${sizeKey}:</strong> ${d[sizeKey]}</div>`);
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 10px; background-color: ${fillColor}; border-radius: 50%; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">${xKeyUsed}: ${d[xKeyUsed]}</div>
+          </div>
+          <div>${yKeyUsed}: <strong>${d[yKeyUsed]}</strong></div>
+          <div>${sizeKey}: <strong>${d[sizeKey]}</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on('mousemove', function(event) {
+        tooltipUtils.move(tooltip, event);
       })
       .on('mouseout', function() {
         d3.select(this)
           .attr('fill-opacity', 0.7)
           .attr('stroke-width', 1);
-        tooltip.style('opacity', 0);
+        tooltipUtils.hide(tooltip);
       })
       .transition()
       .delay((d, i) => i * 50)
@@ -1706,27 +1701,31 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       .attr("stroke-width", 0.5)
       .attr("opacity", 0.8)
       .on("mouseover", function(event, d) {
-        const rect = this.getBoundingClientRect();
-        const tooltipX = rect.left + rect.width / 2 + window.scrollX;
-        const tooltipY = rect.top + window.scrollY;
         const fillColor = d3.select(this).attr('fill');
-        
         d3.select(this)
           .attr("opacity", 1)
           .attr("stroke", chartColors?.text || '#333')
           .attr("stroke-width", 2);
-        tooltip
-          .style("opacity", 1)
-          .style("left", `${tooltipX + 8}px`)
-          .style("top", `${tooltipY - 40}px`)
-          .html(`<div style="display:flex;align-items:center;margin-bottom:8px;"><span style="display:inline-block;width:14px;height:14px;background:${fillColor};border-radius:3px;margin-right:6px;"></span><strong>Histogram</strong></div><div><strong>Range:</strong> ${d.x0.toFixed(2)} - ${d.x1.toFixed(2)}</div><div><strong>Count:</strong> ${d.length}</div>`);
+        const tooltipContent = `
+          <div style="display:flex;align-items:center;margin-bottom:8px;">
+            <span style="display:inline-block;width:14px;height:14px;background:${fillColor};border-radius:3px;margin-right:6px;"></span>
+            <strong>Histogram</strong>
+          </div>
+          <div><strong>Range:</strong> ${d.x0.toFixed(2)} - ${d.x1.toFixed(2)}</div>
+          <div><strong>Count:</strong> ${d.length}</div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+        tooltipUtils.move(tooltip, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
       })
       .on("mouseout", function() {
         d3.select(this)
           .attr("opacity", 0.8)
           .attr("stroke", strokeColor)
           .attr("stroke-width", 0.5);
-        tooltip.style("opacity", 0);
+        tooltipUtils.hide(tooltip);
       })
       .transition()
       .duration(800)
@@ -1797,7 +1796,31 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       .attr("width", x.bandwidth())
       .attr("height", d => y(d.q1) - y(d.q3))
       .attr("fill", hexToRgba(chartColors.primary, 0.8))
-      .attr("stroke", chartColors.primary);
+      .attr("stroke", chartColors.primary)
+      .on("mouseover", function(event, d) {
+        d3.select(this).attr("fill", hexToRgba(chartColors.primary, 1));
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 10px; background-color: ${chartColors.primary}; border-radius: 3px; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">${d.key}</div>
+          </div>
+          <div>Min: <strong>${d.min.toFixed(2)}</strong></div>
+          <div>Q1 (25%): <strong>${d.q1.toFixed(2)}</strong></div>
+          <div>Median (50%): <strong>${d.median.toFixed(2)}</strong></div>
+          <div>Q3 (75%): <strong>${d.q3.toFixed(2)}</strong></div>
+          <div>Max: <strong>${d.max.toFixed(2)}</strong></div>
+          <div>IQR: <strong>${(d.q3 - d.q1).toFixed(2)}</strong></div>
+          ${d.outliers && d.outliers.length > 0 ? `<div>Outliers: <strong>${d.outliers.length}</strong></div>` : ''}
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
+      })
+      .on("mouseout", function() {
+        d3.select(this).attr("fill", hexToRgba(chartColors.primary, 0.8));
+        tooltipUtils.hide(tooltip);
+      });
   
     boxes.append("line")
       .attr("x1", 0)
@@ -1805,35 +1828,132 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       .attr("y1", d => y(d.median))
       .attr("y2", d => y(d.median))
       .attr("stroke", chartColors.text || "#333")
-      .attr("stroke-width", 2);
+      .attr("stroke-width", 2)
+      .style("cursor", "pointer")
+      .on("mouseover", function(event, d) {
+        d3.select(this).attr("stroke-width", 4);
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 2px; background-color: ${chartColors.text || "#333"}; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">Median Line - ${d.key}</div>
+          </div>
+          <div>Median (50%): <strong>${d.median.toFixed(2)}</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
+      })
+      .on("mouseout", function() {
+        d3.select(this).attr("stroke-width", 2);
+        tooltipUtils.hide(tooltip);
+      });
   
     boxes.append("line")
       .attr("x1", x.bandwidth() / 2)
       .attr("x2", x.bandwidth() / 2)
       .attr("y1", d => y(d.min))
       .attr("y2", d => y(d.q1))
-      .attr("stroke", chartColors.text || "#333");
+      .attr("stroke", chartColors.text || "#333")
+      .style("cursor", "pointer")
+      .on("mouseover", function(event, d) {
+        d3.select(this).attr("stroke-width", 3);
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 2px; height: 10px; background-color: ${chartColors.text || "#333"}; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">Lower Whisker - ${d.key}</div>
+          </div>
+          <div>Min: <strong>${d.min.toFixed(2)}</strong></div>
+          <div>Q1 (25%): <strong>${d.q1.toFixed(2)}</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
+      })
+      .on("mouseout", function() {
+        d3.select(this).attr("stroke-width", 1);
+        tooltipUtils.hide(tooltip);
+      });
   
     boxes.append("line")
   .attr("x1", x.bandwidth() / 2)
   .attr("x2", x.bandwidth() / 2)
   .attr("y1", d => y(d.q3))
   .attr("y2", d => y(d.max))
-  .attr("stroke", chartColors.text || "#333");
+  .attr("stroke", chartColors.text || "#333")
+  .style("cursor", "pointer")
+  .on("mouseover", function(event, d) {
+    d3.select(this).attr("stroke-width", 3);
+    const tooltipContent = `
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <div style="width: 2px; height: 10px; background-color: ${chartColors.text || "#333"}; margin-right: 8px;"></div>
+        <div style="font-weight: bold;">Upper Whisker - ${d.key}</div>
+      </div>
+      <div>Q3 (75%): <strong>${d.q3.toFixed(2)}</strong></div>
+      <div>Max: <strong>${d.max.toFixed(2)}</strong></div>
+    `;
+    tooltipUtils.show(tooltip, tooltipContent, event);
+  })
+  .on("mousemove", function(event) {
+    tooltipUtils.move(tooltip, event);
+  })
+  .on("mouseout", function() {
+    d3.select(this).attr("stroke-width", 1);
+    tooltipUtils.hide(tooltip);
+  });
   
     boxes.append("line")
       .attr("x1", x.bandwidth() * 0.25)
       .attr("x2", x.bandwidth() * 0.75)
       .attr("y1", d => y(d.min))
       .attr("y2", d => y(d.min))
-      .attr("stroke", chartColors.text || "#333");
+      .attr("stroke", chartColors.text || "#333")
+      .style("cursor", "pointer")
+      .on("mouseover", function(event, d) {
+        d3.select(this).attr("stroke-width", 3);
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 2px; background-color: ${chartColors.text || "#333"}; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">Minimum - ${d.key}</div>
+          </div>
+          <div>Min Value: <strong>${d.min.toFixed(2)}</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
+      })
+      .on("mouseout", function() {
+        d3.select(this).attr("stroke-width", 1);
+        tooltipUtils.hide(tooltip);
+      });
   
     boxes.append("line")
   .attr("x1", x.bandwidth() * 0.25)
   .attr("x2", x.bandwidth() * 0.75)
   .attr("y1", d => y(d.max))
   .attr("y2", d => y(d.max))
-  .attr("stroke", chartColors.text || "#333");
+  .attr("stroke", chartColors.text || "#333")
+  .style("cursor", "pointer")
+  .on("mouseover", function(event, d) {
+    d3.select(this).attr("stroke-width", 3);
+    const tooltipContent = `
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <div style="width: 10px; height: 2px; background-color: ${chartColors.text || "#333"}; margin-right: 8px;"></div>
+        <div style="font-weight: bold;">Maximum - ${d.key}</div>
+      </div>
+      <div>Max Value: <strong>${d.max.toFixed(2)}</strong></div>
+    `;
+    tooltipUtils.show(tooltip, tooltipContent, event);
+  })
+  .on("mousemove", function(event) {
+    tooltipUtils.move(tooltip, event);
+  })
+  .on("mouseout", function() {
+    d3.select(this).attr("stroke-width", 1);
+    tooltipUtils.hide(tooltip);
+  });
   
     // Outliers
     stats.forEach((stat, i) => {
@@ -1852,18 +1972,24 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
             .attr("r", 5)
             .attr("opacity", 1);
 
-          tooltip
-            .style("opacity", 1)
-            .style("left", (event.pageX + 10) + "px")
-            .style("top", (event.pageY - 28) + "px")
-            .html(`Outlier: ${v}`);
+          const tooltipContent = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+              <div style="width: 10px; height: 10px; background-color: ${d3.color(chartColors.primary).darker(2)}; border-radius: 50%; margin-right: 8px;"></div>
+              <div style="font-weight: bold;">Outlier</div>
+            </div>
+            <div>Value: <strong>${v}</strong></div>
+          `;
+          tooltipUtils.show(tooltip, tooltipContent, event);
+        })
+        .on("mousemove", function(event) {
+          tooltipUtils.move(tooltip, event);
         })
         .on("mouseout", function() {
           d3.select(this)
             .attr("r", 3)
             .attr("opacity", 0.6);
 
-          tooltip.style("opacity", 0);
+          tooltipUtils.hide(tooltip);
         });
     });
   
@@ -1938,17 +2064,24 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
           .attr("stroke", chartColors?.axis || "black")
           .attr("stroke-width", 2);
 
-        tooltip
-          .style("opacity", 1)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px")
-          .html(`<strong>${xKeyUsed}: ${d[xKeyUsed]}</strong><br>${yKeyUsed}: ${d[yKeyUsed]}<br>${valueKey}: ${d[valueKey]}`);
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 10px; background-color: ${colorScale(+d[valueKey])}; border-radius: 3px; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">${xKeyUsed}: ${d[xKeyUsed]}</div>
+          </div>
+          <div>${yKeyUsed}: <strong>${d[yKeyUsed]}</strong></div>
+          <div>${valueKey}: <strong>${d[valueKey]}</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
       })
       .on("mouseout", function() {
         d3.select(this)
           .attr("stroke", "none");
 
-        tooltip.style("opacity", 0);
+        tooltipUtils.hide(tooltip);
       })
       .transition()
       .delay((d, i) => i * 10)
@@ -1968,70 +2101,71 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       .call(d3.axisLeft(y));
 
     // Improved color legend
-    const legendWidth = 18;
-    const legendHeight = Math.max(120, height / 2);
+
+    // Discrete block legend (GitHub style)
+    const legendBlockCount = 5;
+    const legendBlockSize = 18;
+    const legendBlockGap = 6;
     const legendMargin = 12;
     const legendX = width + legendMargin;
-    const legendY = height / 2 - legendHeight / 2;
+    const legendY = height - legendBlockSize - 10;
 
     // Remove old legend if any
     svg.selectAll('.heatmap-legend').remove();
 
-    // Create defs and gradient for legend
-    const defs = svg.append('defs');
-    const gradientId = 'heatmap-gradient';
-    const gradient = defs.append('linearGradient')
-      .attr('id', gradientId)
-      .attr('x1', '0%')
-      .attr('x2', '0%')
-      .attr('y1', '0%')
-      .attr('y2', '100%');
+    // Calculate value thresholds for blocks
+    const valueStep = (extent[1] - extent[0]) / (legendBlockCount - 1);
+    const legendValues = Array.from({ length: legendBlockCount }, (_, i) => extent[0] + i * valueStep);
 
-    // Add color stops to gradient
-    const stops = 12;
-    for (let i = 0; i <= stops; i++) {
-      const t = i / stops;
-      const value = extent[1] - t * (extent[1] - extent[0]);
-      gradient.append('stop')
-        .attr('offset', `${t * 100}%`)
-        .attr('stop-color', colorScale(value));
-    }
-
-    // Draw legend
+    // Draw block legend
     const legend = svg.append('g')
       .attr('class', 'heatmap-legend')
       .attr('transform', `translate(${legendX},${legendY})`);
 
-    legend.append('rect')
-      .attr('width', legendWidth)
-      .attr('height', legendHeight)
+    legend.selectAll('rect')
+      .data(legendValues)
+      .enter()
+      .append('rect')
+      .attr('x', (d, i) => i * (legendBlockSize + legendBlockGap))
+      .attr('y', 0)
+      .attr('width', legendBlockSize)
+      .attr('height', legendBlockSize)
       .attr('rx', 4)
-      .style('fill', `url(#${gradientId})`)
+      .style('fill', d => colorScale(d))
       .style('stroke', chartColors?.axis || '#ccc');
 
-    // Add min/max value labels
+    // Add min and max value labels
     legend.append('text')
-      .attr('x', legendWidth + 6)
-      .attr('y', legendHeight)
-      .attr('dominant-baseline', 'middle')
-      .attr('text-anchor', 'start')
+      .attr('x', 0)
+      .attr('y', legendBlockSize + 14)
+      .attr('text-anchor', 'middle')
       .style('font-size', '12px')
       .style('fill', chartColors?.text || '#333')
-      .text(extent[0]);
+      .text(Math.round(extent[0]));
 
     legend.append('text')
-      .attr('x', legendWidth + 6)
-      .attr('y', 0)
-      .attr('dominant-baseline', 'middle')
-      .attr('text-anchor', 'start')
+      .attr('x', (legendBlockCount - 1) * (legendBlockSize + legendBlockGap))
+      .attr('y', legendBlockSize + 14)
+      .attr('text-anchor', 'middle')
       .style('font-size', '12px')
       .style('fill', chartColors?.text || '#333')
-      .text(extent[1]);
+      .text(Math.round(extent[1]));
 
-    // Add legend title (vertical, centered)
+    // Optionally add a mid value label
+    if (legendBlockCount > 2) {
+      legend.append('text')
+        .attr('x', Math.floor((legendBlockCount - 1) / 2) * (legendBlockSize + legendBlockGap))
+        .attr('y', legendBlockSize + 12)
+        .attr('text-anchor', 'middle')
+        .style('font-size', '12px')
+        .style('fill', chartColors?.text || '#333')
+        .text(Math.round(extent[0] + (extent[1] - extent[0]) / 2));
+    }
+
+    // Add legend title (above blocks, centered)
     legend.append('text')
-      .attr('x', legendWidth / 2)
-      .attr('y', -10)
+      .attr('x', ((legendBlockCount - 1) * (legendBlockSize + legendBlockGap)) / 2)
+      .attr('y', -8)
       .attr('text-anchor', 'middle')
       .style('font-size', '13px')
       .style('fill', chartColors?.text || '#333')
@@ -2167,12 +2301,16 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
           })
           .attr("stroke-width", 3);
   
-        tooltip
-          .style("opacity", 1)
-          .style("left", `${event.pageX + 10}px`)
-          .style("top", `${event.pageY - 28}px`)
-          .html(`<div style="font-weight: bold; color: ${colorScale(d.name)};">${d.name}</div>` + 
-                d.values.slice(0, -1).map(v => `<div>${v.axis}: ${v.value}</div>`).join(""));
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 10px; background-color: ${colorScale(d.name)}; border-radius: 50%; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">${d.name}</div>
+          </div>
+        ` + d.values.slice(0, -1).map(v => `<div>${v.axis}: <strong>${v.value}</strong></div>`).join("");
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
       })
       .on("mouseout", function (event, d) {
         d3.select(this)
@@ -2181,7 +2319,7 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
             return baseColor.copy({ opacity: 0.2 });
           })
           .attr("stroke-width", 2);
-        tooltip.style("opacity", 0);
+        tooltipUtils.hide(tooltip);
       });
 
     // Add data points (nodes) for each series
@@ -2203,18 +2341,23 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
             .attr("r", 6)
             .attr("stroke-width", 2);
           
-          tooltip
-            .style("opacity", 1)
-            .style("left", `${event.pageX + 10}px`)
-            .style("top", `${event.pageY - 28}px`)
-            .html(`<div style="font-weight: bold; color: ${colorScale(seriesData.name)};">${seriesData.name}</div>
-                   <div>${d.axis}: <strong>${d.value}</strong></div>`);
+          const tooltipContent = `
+            <div style="display: flex; align-items: center; margin-bottom: 8px;">
+              <div style="width: 10px; height: 10px; background-color: ${colorScale(seriesData.name)}; border-radius: 50%; margin-right: 8px;"></div>
+              <div style="font-weight: bold;">${seriesData.name}</div>
+            </div>
+            <div>${d.axis}: <strong>${d.value}</strong></div>
+          `;
+          tooltipUtils.show(tooltip, tooltipContent, event);
+        })
+        .on("mousemove", function(event) {
+          tooltipUtils.move(tooltip, event);
         })
         .on("mouseout", function () {
           d3.select(this)
             .attr("r", 4)
             .attr("stroke-width", 1.5);
-          tooltip.style("opacity", 0);
+          tooltipUtils.hide(tooltip);
         });
     });
   
@@ -2260,72 +2403,79 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
   };
   
   const generateCalendarHeatmap = (svg, width, height, data, tooltip, margin, xKey, yKey, groupKey, chartColors) => {  
-    // Use provided keys or fallback to first two columns
+    // Use provided keys or fallback
     const dateKey = xKey || Object.keys(data[0])[0];
     const valueKey = yKey || Object.keys(data[0])[1];
 
-    // Data processing with error handling
     const processedData = data.map(d => {
       const date = new Date(d[dateKey]);
       if (isNaN(date)) return null;
-      return {
-        date,
-        value: +d[valueKey] || 0,
-        original: d
-      };
+      return { date, value: +d[valueKey] || 0, original: d };
     }).filter(Boolean);
 
     if (processedData.length === 0) return;
 
-    // Sort data by date for better grouping
     processedData.sort((a, b) => a.date - b.date);
 
     const years = d3.groups(processedData, d => d.date.getFullYear());
     const values = processedData.map(d => d.value);
-    const maxValue = d3.max(values);
-    const minValue = d3.min(values);
 
-    const cellSize = 15;
-    const cellMargin = 1;
-    const calendarHeight = (cellSize + cellMargin) * 8;
-    const totalHeight = years.length * calendarHeight + margin.top + margin.bottom;
+    const baseCellSize = 15;
+    const baseCellMargin = 1;
+    const baseMonthGap = 15; 
+    const weekdayLabelWidth = 30;
+    const yearLabelHeight = 20;
+    const monthLabelHeight = 20;
 
-    svg.attr("height", totalHeight).attr("width", width);
+    const sampleYear = years[0][0];
+    const lastDayOfYear = new Date(sampleYear, 11, 31);
+    const maxWeekOffset = d3.timeWeek.count(d3.timeYear(new Date(sampleYear, 0, 1)), lastDayOfYear);
+    const idealCalendarWidth = (maxWeekOffset + 1) * (baseCellSize + baseCellMargin) + 11 * baseMonthGap;
+    
+    const availableCalendarWidth = width - margin.left - margin.right - weekdayLabelWidth;
+    let scaleFactor = 1;
+    if (idealCalendarWidth > availableCalendarWidth) {
+        scaleFactor = availableCalendarWidth / idealCalendarWidth;
+    }
 
-    // Use chartColors.primary for color scale
+    const cellSize = baseCellSize * scaleFactor;
+    const cellMargin = baseCellMargin * scaleFactor;
+    const monthGap = baseMonthGap * scaleFactor;
+    const actualCalendarWidth = (maxWeekOffset + 1) * (cellSize + cellMargin) + 11 * monthGap;
+
+
+    const calendarHeight = (cellSize + cellMargin) * 7 + yearLabelHeight + monthLabelHeight;
+    const totalCalendarHeight = years.length * calendarHeight;
+    
+    const verticalCenterOffset = Math.max(0, (height - margin.top - margin.bottom - totalCalendarHeight) / 2);
+    const horizontalCenterOffset = Math.max(0, (availableCalendarWidth - actualCalendarWidth) / 2);
+
     const colorScale = chartUtils.createSequentialColorScale(
       d3.extent(values),
-      chartColors && chartColors.primary ? chartColors.primary : '#027c68'
+      chartColors?.primary || '#027c68'
     );
-
-    // Add background for better readability
-    svg.append("rect")
-      .attr("width", width)
-      .attr("height", totalHeight)
-      .attr("fill", (chartColors && chartColors.background) || "#f8f8f8");
-
+    
     const calendar = svg.selectAll(".year-group")
       .data(years)
       .enter()
       .append("g")
       .attr("class", "year-group")
-      .attr("transform", (d, i) => `translate(${margin.left}, ${i * calendarHeight + margin.top})`);
+      .attr("transform", (d, i) => `translate(${margin.left + weekdayLabelWidth + horizontalCenterOffset}, ${i * calendarHeight + margin.top + verticalCenterOffset})`);
 
-    // Improved year label
+
     calendar.append("text")
-      .attr("x", -2)
-      .attr("y", 5)
+      .attr("x", -weekdayLabelWidth)
+      .attr("y", yearLabelHeight - 5)
       .attr("class", "year-label")
       .text(d => d[0])
-      .style("font-size", "12px")
+      .style("font-size", "14px")
       .style("font-weight", "bold")
-      .style("fill", (chartColors && chartColors.text) || "#333");
+      .style("fill", chartColors?.text || "#333");
 
     calendar.each(function ([year, values]) {
       const g = d3.select(this);
       const valueMap = new Map(values.map(d => [d3.timeFormat("%Y-%m-%d")(d.date), d.value]));
       const days = d3.timeDays(new Date(year, 0, 1), new Date(year + 1, 0, 1));
-
       const monthData = d3.timeMonths(new Date(year, 0, 1), new Date(year + 1, 0, 1));
 
       g.selectAll(".month-label")
@@ -2334,137 +2484,125 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         .append("text")
         .attr("class", "month-label")
         .attr("x", d => {
-          const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
-          return d3.timeWeek.count(d3.timeYear(d), firstDay) * cellSize + 30 + cellSize / 2;
+          const weekOffset = d3.timeWeek.count(d3.timeYear(d), new Date(d.getFullYear(), d.getMonth(), 1));
+          return weekOffset * (cellSize + cellMargin) + d.getMonth() * monthGap + cellSize / 2;
         })
-        .attr("y", 10)
+        .attr("y", yearLabelHeight + monthLabelHeight - 8)
         .text(d => d3.timeFormat("%b")(d))
-        .style("font-size", "10px")
-        .style("fill", (chartColors && chartColors.text) || "#555")
+        .style("font-size", `${10 * scaleFactor}px`)
+        .style("fill", chartColors?.text || "#555")
         .style("text-anchor", "middle");
 
-      g.selectAll("rect")
+      g.selectAll("rect.day-cell")
         .data(days)
         .enter()
         .append("rect")
+        .attr("class", "day-cell")
         .attr("width", cellSize - cellMargin)
         .attr("height", cellSize - cellMargin)
-        .attr("x", d => d3.timeWeek.count(d3.timeYear(d), d) * cellSize + 10)
-        .attr("y", d => d.getDay() * cellSize + 15)
+        .attr("x", d => {
+          const weekOffset = d3.timeWeek.count(d3.timeYear(d), d);
+          return weekOffset * (cellSize + cellMargin) + d.getMonth() * monthGap;
+        })
+        .attr("y", d => yearLabelHeight + monthLabelHeight + d.getDay() * (cellSize + cellMargin))
         .attr("fill", d => {
           const key = d3.timeFormat("%Y-%m-%d")(d);
-          return valueMap.has(key) ? colorScale(valueMap.get(key)) : ((chartColors && chartColors.background) || "#f0f0f0");
+          return valueMap.has(key) ? colorScale(valueMap.get(key)) : "#f0f0f0";
         })
         .attr("rx", 2)
-        .attr("stroke", (chartColors && chartColors.axis) || "#fff")
-        .attr("stroke-width", 0.5)
         .on("mouseover", function (event, d) {
-          const key = d3.timeFormat("%Y-%m-%d")(d);
-          const val = valueMap.has(key) ? valueMap.get(key) : "No data";
-          const originalData = values.find(v => d3.timeFormat("%Y-%m-%d")(v.date) === key)?.original;
-
-          const fillColor = valueMap.has(key) ? colorScale(valueMap.get(key)) : ((chartColors && chartColors.background) || "#f0f0f0");
-
-          d3.select(this)
-            .attr("stroke", (chartColors && chartColors.axis) || fillColor)
-            .attr("stroke-width", 2)
-            .raise();
-
-          // Get bounding rect for precise tooltip placement
-          const rect = this.getBoundingClientRect();
-          const tooltipX = rect.left + rect.width / 2 + window.scrollX;
-          const tooltipY = rect.top + window.scrollY;
-
-          const tooltipContent = `<div style=\"display:flex;align-items:center;\"><span style=\"display:inline-block;width:14px;height:14px;background:${fillColor};border-radius:3px;margin-right:6px;\"></span><strong>${d3.timeFormat("%b %d, %Y")(d)}</strong></div>` +
-            (originalData
-              ? '<br>' + Object.entries(originalData).map(([k, v]) => `<strong>${k}:</strong> ${v}`).join("<br>")
-              : `<br><strong>${valueKey}:</strong> ${val}`);
-
-          tooltip
-            .style("opacity", 1)
-            .style("left", `${tooltipX + 8}px`)
-            .style("top", `${tooltipY - 40}px`)
-            .html(tooltipContent);
+            const key = d3.timeFormat("%Y-%m-%d")(d);
+            const val = valueMap.has(key) ? valueMap.get(key) : "No data";
+            const originalData = values.find(v => d3.timeFormat("%Y-%m-%d")(v.date) === key)?.original;
+            const fillColor = valueMap.has(key) ? colorScale(valueMap.get(key)) : "#f0f0f0";
+            
+            d3.select(this).attr("stroke", chartColors?.primary || "#333").attr("stroke-width", 2).raise();
+            
+            const tooltipContent = `<div style="display: flex; align-items: center; margin-bottom: 8px;"><div style="width: 14px; height: 14px; background-color: ${fillColor}; border-radius: 3px; margin-right: 8px;"></div><div style="font-weight: bold;">${d3.timeFormat("%b %d, %Y")(d)}</div></div>${originalData ? Object.entries(originalData).map(([k, v]) => `<div><strong>${k}:</strong> ${v}</div>`).join("") : `<div><strong>${valueKey}:</strong> ${val}</div>`}`;
+            tooltipUtils.show(tooltip, tooltipContent, event);
         })
+        .on("mousemove", (event) => tooltipUtils.move(tooltip, event))
         .on("mouseout", function () {
-          d3.select(this)
-            .attr("stroke", (chartColors && chartColors.axis) || "#fff")
-            .attr("stroke-width", 0.5);
-          tooltip.style("opacity", 0);
+            d3.select(this).attr("stroke", "none");
+            tooltipUtils.hide(tooltip);
         });
     });
 
-    // Weekday labels with better positioning
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const weekdays = ["", "Mon", "", "Wed", "", "Fri", ""]; // Show fewer labels for clarity
     svg.selectAll(".weekday-label")
-      .data(days)
+      .data(weekdays)
       .enter()
       .append("text")
       .attr("class", "weekday-label")
-      .attr("x", margin.left - 5)
-      .attr("y", (d, i) => margin.top + i * cellSize + cellSize / 2 + 15)
+      .attr("x", margin.left + weekdayLabelWidth - 10)
+      .attr("y", (d, i) => margin.top + verticalCenterOffset + yearLabelHeight + monthLabelHeight + i * (cellSize + cellMargin) + cellSize / 2)
       .style("text-anchor", "end")
-      .style("font-size", "10px")
-      .style("fill", (chartColors && chartColors.text) || "#555")
+      .style("font-size", `${10 * scaleFactor}px`)
+      .style("fill", chartColors?.text || "#555")
+      .style("alignment-baseline", "middle")
       .text(d => d);
 
-    // Improved legend using chartColors
-    const legendWidth = 120;
-    const legendHeight = 12;
-    const legendX = width - legendWidth - margin.right;
-    const legendY = totalHeight - legendHeight - 10;
+    // Block legend (GitHub style)
+  const legendBlockCount = 5;
+  const legendBlockSize = 12;
+  const legendBlockGap = 3;
+  const legendMargin = 12;
+  // Move legend a bit lower (add 10px)
+  const legendX = width - (legendBlockCount * (legendBlockSize + legendBlockGap)) - margin.right;
+  const legendY = height - legendBlockSize - margin.bottom + 25;
 
-    const legend = svg.append("g")
-      .attr("class", "calendar-legend")
-      .attr("transform", `translate(${legendX}, ${legendY})`);
+    // Remove old legend if any
+    svg.selectAll('.calendar-block-legend').remove();
 
-    const defs = svg.append("defs");
-    const gradient = defs.append("linearGradient")
-      .attr("id", "calendar-gradient")
-      .attr("x1", "0%")
-      .attr("x2", "100%");
+    // Calculate value thresholds for blocks
+    const [minValue, maxValue] = d3.extent(values);
+    const valueStep = (maxValue - minValue) / (legendBlockCount - 1);
+    const legendValues = Array.from({ length: legendBlockCount }, (_, i) => minValue + i * valueStep);
 
-    const stops = (chartColors && Array.isArray(chartColors.gradient) && chartColors.gradient.length > 1)
-      ? chartColors.gradient
-      : [colorScale(minValue), colorScale(maxValue)];
-    const legendStops = (chartColors && Array.isArray(chartColors.gradient) && chartColors.gradient.length > 1)
-      ? chartColors.gradient.length : 2;
-    for (let i = 0; i < legendStops; i++) {
-      const offset = i / (legendStops - 1);
-      gradient.append("stop")
-        .attr("offset", `${offset * 100}%`)
-        .attr("stop-color", (chartColors && Array.isArray(chartColors.gradient) && chartColors.gradient.length > 1)
-          ? chartColors.gradient[i]
-          : colorScale(i === 0 ? minValue : maxValue));
-    }
+    // Draw block legend
+    const legend = svg.append('g')
+      .attr('class', 'calendar-block-legend')
+      .attr('transform', `translate(${legendX},${legendY})`);
 
-    legend.append("rect")
-      .attr("width", legendWidth)
-      .attr("height", legendHeight)
-      .attr("rx", 3)
-      .style("fill", "url(#calendar-gradient)")
-      .style("stroke", (chartColors && chartColors.axis) || "#ccc");
+    legend.selectAll('rect')
+      .data(legendValues)
+      .enter()
+      .append('rect')
+      .attr('x', (d, i) => i * (legendBlockSize + legendBlockGap))
+      .attr('y', 0)
+      .attr('width', legendBlockSize)
+      .attr('height', legendBlockSize)
+      .attr('rx', 4)
+      .style('fill', d => colorScale(d))
+      .style('stroke', chartColors?.axis || '#ccc');
 
-    const legendScale = d3.scaleLinear()
-      .domain([minValue, maxValue])
-      .range([0, legendWidth]);
+    // Add min and max value labels
+    legend.append('text')
+      .attr('x', 0)
+      .attr('y', legendBlockSize + 14)
+      .attr('text-anchor', 'middle')
+      .style('font-size', '12px')
+      .style('fill', chartColors?.text || '#333')
+      .text(Math.round(minValue));
 
-    const legendAxis = d3.axisBottom(legendScale)
-      .ticks(5)
-      .tickSize(legendHeight)
-      .tickFormat(d3.format(".2s"));
+    legend.append('text')
+      .attr('x', (legendBlockCount) * (legendBlockSize + legendBlockGap))
+      .attr('y', legendBlockSize + 14)
+      .attr('text-anchor', 'middle')
+      .style('font-size', '12px')
+      .style('fill', chartColors?.text || '#333')
+      .text(Math.round(maxValue));
 
-    legend.append("g")
-      .attr("transform", `translate(0,${legendHeight})`)
-      .call(legendAxis);
+    // Optionally add a mid value label
+  // No mid value label (only min and max)
 
-    // Add legend title
-    legend.append("text")
-      .attr("class", "legend-title")
-      .attr("text-anchor", "middle")
-      .attr("transform", "rotate(90)")
-      .attr("x", legendHeight / 2)
-      .attr("y", -legendWidth - 10)
+    // Add legend title (above blocks, centered)
+    legend.append('text')
+      .attr('x', ((legendBlockCount - 1) * (legendBlockSize + legendBlockGap)) / 2)
+      .attr('y', -6)
+      .attr('text-anchor', 'middle')
+      .style('font-size', '11px')
+      .style('fill', chartColors?.text || '#333')
       .text(valueKey);
   }
   
@@ -2568,16 +2706,24 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
           d3.select(this)
             .attr("r", 6)
             .attr("stroke-width", 2);
-
-          tooltip
-            .style("opacity", 1)
-            .style("left", `${event.pageX + 10}px`)
-            .style("top", `${event.pageY - 28}px`)
-            .html(`<strong>${key}</strong><br>${xKeyUsed}: ${d.x instanceof Date ? d3.timeFormat("%Y-%m-%d")(d.x) : d.x}<br>Value: ${d.value}`);
+          const fillColor = colorScale(key);
+          const tooltipContent = `
+            <div style="display:flex;align-items:center;margin-bottom:6px;">
+              <span style="display:inline-block;width:10px;height:10px;background:${fillColor};border-radius:50%;margin-right:6px;"></span>
+              <strong>${key}</strong>
+            </div>
+            <div>${xKeyUsed}: ${d.x instanceof Date ? d3.timeFormat("%Y-%m-%d")(d.x) : d.x}</div>
+            <div>Value: ${d.value}</div>
+          `;
+          tooltipUtils.show(tooltip, tooltipContent, event);
+          tooltipUtils.move(tooltip, event);
+        })
+        .on("mousemove", function(event) {
+          tooltipUtils.move(tooltip, event);
         })
         .on("mouseout", function() {
           d3.select(this).attr("r", 4).style("opacity", 0.8);
-          tooltip.style("opacity", 0);
+          tooltipUtils.hide(tooltip);
         })
         .transition()
         .delay((d, i) => i * 100)
@@ -2719,22 +2865,24 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
     lines
       .on("mouseover", function(event, d) {
         d3.select(this).attr("stroke-width", 3).attr("opacity", 1);
-        tooltip.transition().duration(200).style("opacity", .9);
-        tooltip.html(`
-          <div class="tooltip-content">
-            <strong>${d.category}</strong><br/>
-            Start: ${d.startValue.toFixed(2)}<br/>
-            End: ${d.endValue.toFixed(2)}<br/>
-            Change: ${d.change > 0 ? '+' : ''}${d.change.toFixed(2)}<br/>
-            ${d.percentChange > 0 ? '+' : ''}${d.percentChange.toFixed(1)}%
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 10px; background-color: ${colorScale(d.category)}; border-radius: 3px; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">${d.category}</div>
           </div>
-        `)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px");
+          <div>Start: <strong>${d.startValue.toFixed(2)}</strong></div>
+          <div>End: <strong>${d.endValue.toFixed(2)}</strong></div>
+          <div>Change: <strong>${d.change > 0 ? '+' : ''}${d.change.toFixed(2)}</strong></div>
+          <div>Percent Change: <strong>${d.percentChange > 0 ? '+' : ''}${d.percentChange.toFixed(1)}%</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
       })
       .on("mouseout", function() {
         d3.select(this).attr("stroke-width", 2).attr("opacity", 0.8);
-        tooltip.transition().duration(500).style("opacity", 0);
+        tooltipUtils.hide(tooltip);
       });
 
     // Category labels (left, with space from dots)
@@ -2822,19 +2970,22 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
     dots
       .on("mouseover", function(event, d) {
         d3.select(this).attr("r", 6);
-        tooltip.transition().duration(200).style("opacity", .9);
-        tooltip.html(`
-          <div class="tooltip-content">
-            <strong>${d.category}</strong><br/>
-            ${d.time}: ${d.value.toFixed(2)}
+        const tooltipContent = `
+          <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <div style="width: 10px; height: 10px; background-color: ${colorScale(d.category)}; border-radius: 3px; margin-right: 8px;"></div>
+            <div style="font-weight: bold;">${d.category}</div>
           </div>
-        `)
-          .style("left", (event.pageX + 10) + "px")
-          .style("top", (event.pageY - 28) + "px");
+          <div>Time: <strong>${d.time}</strong></div>
+          <div>Value: <strong>${d.value.toFixed(2)}</strong></div>
+        `;
+        tooltipUtils.show(tooltip, tooltipContent, event);
+      })
+      .on("mousemove", function(event) {
+        tooltipUtils.move(tooltip, event);
       })
       .on("mouseout", function() {
         d3.select(this).attr("r", 4);
-        tooltip.transition().duration(500).style("opacity", 0);
+        tooltipUtils.hide(tooltip);
       });
 
 
@@ -2906,8 +3057,9 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       const maxD = d3.max(density, d => d[1]);
       const xNum = d3.scaleLinear().range([0, x.bandwidth()]).domain([-maxD, maxD]);
   
-      svg.append("g")
-        .append("path")
+      const g = svg.append("g");
+      // Left half
+      const leftPath = g.append("path")
         .datum(density)
         .attr("transform", `translate(${x(group)},0)`)
         .attr("fill", colorScale(group))
@@ -2918,25 +3070,46 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
           .curve(d3.curveBasis)
           .x(d => xNum(d[1]))
           .y(d => y(d[0]))
-        )
-        .clone(true)
+        );
+
+      // Right half (mirror)
+      const rightPath = g.append("path")
+        .datum(density)
+        .attr("transform", `translate(${x(group)},0)`)
+        .attr("fill", colorScale(group))
+        .attr("stroke", chartColors?.axis || "#666")
+        .attr("stroke-width", 1)
+        .attr("opacity", 0.7)
         .attr("d", d3.line()
           .curve(d3.curveBasis)
           .x(d => xNum(-d[1]))
           .y(d => y(d[0]))
-        )
-        .on("mouseover", function(event) {
-          d3.select(this).attr("opacity", 1);
-          tooltip
-            .style("opacity", 1)
-            .style("left", `${event.pageX + 10}px`)
-            .style("top", `${event.pageY - 28}px`)
-            .html(`<strong>${group}</strong><br>Sample size: ${groupData.length}<br>Mean: ${d3.mean(groupData).toFixed(2)}`);
+        );
+
+      // Tooltip handlers for both halves
+      [leftPath, rightPath].forEach(path => {
+        path.on("mouseover", function(event) {
+            d3.select(this).attr("opacity", 1);
+            const fillColor = colorScale(group);
+            const tooltipContent = `
+              <div style=\"display:flex;align-items:center;margin-bottom:8px;\">
+                <span style=\"display:inline-block;width:14px;height:14px;background:${fillColor};border-radius:3px;margin-right:6px;\"></span>
+                <strong>${group}</strong>
+              </div>
+              <div>Sample size: ${groupData.length}</div>
+              <div>Mean: ${d3.mean(groupData).toFixed(2)}</div>
+            `;
+            tooltipUtils.show(tooltip, tooltipContent, event);
+            tooltipUtils.move(tooltip, event);
+        })
+        .on("mousemove", function(event) {
+            tooltipUtils.move(tooltip, event);
         })
         .on("mouseout", function() {
-          d3.select(this).attr("opacity", 0.7);
-          tooltip.style("opacity", 0);
+            d3.select(this).attr("opacity", 0.7);
+            tooltipUtils.hide(tooltip);
         });
+      });
     });
   
     svg.append('g')
