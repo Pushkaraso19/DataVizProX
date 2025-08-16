@@ -329,6 +329,10 @@ const FileUpload = ({ onDataProcessed, onSheetModalChange }) => {
       resetModalAndFile();
       setSelectedFile(file);
       processFile(file);
+      // Reset the input value so uploading the same file again triggers onChange
+      if (e.target) {
+        e.target.value = '';
+      }
     }
   };
 

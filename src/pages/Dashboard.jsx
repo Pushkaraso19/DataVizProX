@@ -100,13 +100,38 @@ const Dashboard = () => {
         if (processedData.length > 50000) {
           console.warn('Large dataset detected. Performance optimizations are active.');
         }
-        
-        // Set simple default selections
+        // Helper to get all numeric columns
+        const getNumericColumns = () => {
+          if (!processedData[0]) return [];
+          return Object.keys(processedData[0]).filter(key => {
+            const val = processedData[0][key];
+            return !isNaN(parseFloat(val)) && isFinite(val);
+          });
+        };
+        // Determine if current chart type uses multipleY
+        const cfg = axisConfig[chartType] || {};
+        let defaultYKey;
+        if (cfg.multipleY) {
+          // For stackedBar, stackedBar100, radar, etc: default to all numeric columns (even if only 2)
+          const numericCols = getNumericColumns();
+          defaultYKey = numericCols.length > 0 ? numericCols : [''];
+        } else {
+          defaultYKey = headers[1] || '';
+        }
+        // Reset all mapping dropdowns and search states to defaults
         setXKey(headers[0] || '');
-        setYKey(headers[1] || '');
-        setXAxisSearch(''); 
+        setYKey(defaultYKey);
+        setZKey(headers[2] || '');
+        setGroupKey('');
+        setXAxisSearch('');
         setYAxisSearch('');
-        
+        setZAxisSearch('');
+        setGroupSearch('');
+        setTreeNameKey('');
+        setTreeValueKey('');
+        setTreeValueSearch('');
+        setTreeParentKey(null);
+        setTreeHierarchyKeys([]);
         setData(processedData);
         
       } catch (error) {
@@ -294,6 +319,257 @@ const Dashboard = () => {
     { type: 'pdf', label: 'PDF Document', icon: <FileText size={16} /> },
     { type: 'svg', label: 'SVG Vector', icon: <Code2 size={16} /> }
   ];
+  const AxisDropdown = ({
+    label,
+    placeholder,
+    value,
+    setValue,
+    search,
+    setSearch,
+    dropdownOpen,
+    setDropdownOpen,
+    data,
+    allowMultiple = false,
+    filterNumeric = false,
+    filterText = false,
+    selectedKeys = []
+  }) => {
+    // Enhanced filtering logic
+    const keys = Object.keys(data[0] || {}).filter(key => {
+      // Search filter
+      if (!key.toLowerCase().includes((search || '').toLowerCase())) return false;
+      
+      // Data type filters
+      if (filterNumeric) {
+        return !isNaN(parseFloat(data[0][key])) && isFinite(data[0][key]);
+      }
+      if (filterText) {
+        return isNaN(parseFloat(data[0][key])) || typeof data[0][key] === 'string';
+      }
+      
+      return true;
+    });
+
+    // Display value logic
+    const displayValue = () => {
+      if (allowMultiple) {
+        const selected = Array.isArray(value) ? value : [];
+        return selected.length > 0 ? selected.join(', ') : '';
+      }
+      return search || value || '';
+    };
+
+    return (
+      <div className="mb-4 relative">
+        <label className="block text-lg font-semibold text-gray-700 mb-2">
+          {label}
+          {filterNumeric && <span className="text-lg text-emerald-600 ml-2">(Numeric)</span>}
+          {filterText && <span className="text-lg text-blue-600 ml-2">(Text)</span>}
+          {allowMultiple && <span className="text-lg text-purple-600 ml-2">(Multiple)</span>}
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            placeholder={placeholder}
+            value={displayValue()}
+            onFocus={() => setDropdownOpen(true)}
+            onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
+            onChange={(e) => {
+              const v = e.target.value;
+              setSearch(v);
+              setDropdownOpen(true);
+              if (v.trim() === "") {
+                setValue(allowMultiple ? [] : "");
+              }
+            }}
+            className="w-full p-3 border border-gray-300 rounded-lg pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200 text-base"
+          />
+          <ChevronDown
+            size={18}
+            className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none transition-transform duration-200 ${
+              dropdownOpen ? 'rotate-180' : ''
+            }`}
+          />
+        </div>
+
+        {dropdownOpen && (
+          <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5 backdrop-blur-sm">
+            {keys.length > 0 ? (
+              keys.map(key => {
+                const isSelected = allowMultiple 
+                  ? Array.isArray(value) && value.includes(key)
+                  : value === key;
+                
+                return (
+                  <div
+                    key={key}
+                    onMouseDown={() => {
+                      if (allowMultiple) {
+                        setValue(prev => {
+                          const arr = Array.isArray(prev) ? prev : [];
+                          return arr.includes(key)
+                            ? arr.filter(k => k !== key)
+                            : [...arr, key];
+                        });
+                      } else {
+                        setValue(key);
+                        setSearch('');
+                        setDropdownOpen(false);
+                      }
+                    }}
+                    className={`p-3 cursor-pointer transition-all duration-200 border-b border-gray-100 last:border-b-0 ${
+                      isSelected 
+                        ? 'bg-emerald-50 hover:bg-emerald-100 border-l-4 border-l-emerald-500' 
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        {allowMultiple && (
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            readOnly
+                            className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500"
+                          />
+                        )}
+                        <div className={`font-medium text-base ${isSelected ? 'text-emerald-800' : 'text-gray-900'}`}>
+                          {key}
+                        </div>
+                      </div>
+                      {filterNumeric && !isNaN(parseFloat(data[0][key])) && (
+                        <span className="text-xs text-emerald-600 bg-emerald-100 px-2 py-1 rounded">Numeric</span>
+                      )}
+                      {filterText && isNaN(parseFloat(data[0][key])) && (
+                        <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">Text</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="p-4 text-gray-500 text-center italic">
+                {filterNumeric && "No numeric fields found"}
+                {filterText && "No text fields found"}
+                {!filterNumeric && !filterText && "No matching fields found"}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Enhanced config for different chart types with data type requirements
+  const axisConfig = {
+    // Basic Charts
+    area: { x: "X-Axis", y: "Y-Axis", yFilter: "numeric" },
+    line: { x: "X-Axis", y: "Y-Axis", yFilter: "numeric" },
+    stepLine: { x: "X-Axis", y: "Y-Axis", yFilter: "numeric", multipleY: true },
+    bar: { x: "Category", y: "Value", xFilter: "text", yFilter: "numeric" },
+    //Special Charts
+    slopeChart: { 
+      x: "Category", 
+      y: "Start", 
+      z: "End", 
+      xFilter: "text", 
+      yFilter: "numeric", 
+      zFilter: "numeric" 
+    },
+    pie: { 
+      x: "Category", 
+      y: "Value", 
+      xFilter: "text", 
+      yFilter: "numeric" 
+    },
+    heatmap: { 
+      x: "X-Axis", 
+      y: "Y-Axis", 
+      z: "Value", 
+      xFilter: "text", 
+      yFilter: "text", 
+      zFilter: "numeric" 
+    },
+    histogram: { 
+      x: "Value", 
+      xFilter: "numeric" 
+    },
+    
+    // Multi-value Charts
+    radar: { 
+      x: "Category", 
+      y: "Values", 
+      multipleY: true, 
+      xFilter: "text", 
+      yFilter: "numeric" 
+    },
+    stackedBar: { 
+      x: "Category", 
+      y: "Stacked Values",
+      multipleY: true, 
+      xFilter: "text", 
+      yFilter: "numeric", 
+    },
+    stackedBar100: { 
+      x: "Category", 
+      y: "Stacked Values",
+      multipleY: true, 
+      xFilter: "text", 
+      yFilter: "numeric",
+    },
+    
+    // Statistical Charts
+    boxPlot: { 
+      x: "Category", 
+      y: "Value", 
+      xFilter: "text", 
+      yFilter: "numeric" 
+    },
+    violinPlot: { 
+      x: "Category", 
+      y: "Value", 
+      xFilter: "text", 
+      yFilter: "numeric" 
+    },
+    
+    // Grouped Charts
+    groupedBar: { 
+      x: "Category", 
+      y: "Value", 
+      group: "Group", 
+      xFilter: "text", 
+      yFilter: "numeric", 
+      groupFilter: "text" 
+    },
+    
+    // Scatter Charts
+    bubble: { 
+      x: "X-Axis", 
+      y: "Y-Axis", 
+      z: "Size", 
+      group: "Group", 
+      xFilter: "numeric", 
+      yFilter: "numeric", 
+      zFilter: "numeric", 
+      groupFilter: "text" 
+    },
+    scatter: { 
+      x: "X-Axis", 
+      y: "Y-Axis", 
+      group: "Group", 
+      xFilter: "numeric", 
+      yFilter: "numeric", 
+      groupFilter: "text" 
+    },
+    
+    // Time-based Charts
+    calendarHeatmap: { 
+      x: "Date", 
+      y: "Value", 
+      yFilter: "numeric" 
+    },
+  };
+
 
   return (
     <div className="dashboard-container">
@@ -330,380 +606,99 @@ const Dashboard = () => {
             transition={{ delay: 0.3 }}
           >
             <h3 className="text-2xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-emerald-200">
-              <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Chart</span> Customization
-            </h3>            
+              <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+                Chart
+              </span>{" "}
+              Customization
+            </h3>
+
             <div className="space-y-4">
+              <h4 className="font-semibold text-xl text-gray-700 mb-3">
+                Data{" "}
+                <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+                  Mapping
+                </span>
+              </h4>
 
-              {/* Data Mapping */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-xl text-gray-700 mb-3">
-                  Data <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Mapping</span>
-                </h4>
+              {(() => {
+                const cfg = axisConfig[chartType] || {};
+                
+                // Helper function to get filter type
+                const getFilterProps = (filterType) => {
+                  switch(filterType) {
+                    case 'numeric':
+                      return { filterNumeric: true };
+                    case 'text':
+                      return { filterText: true };
+                    default:
+                      return {};
+                  }
+                };
 
-                {/* X-Axis Selection */}
-                <div className="mb-4 relative">
-                  <label className="block text-lg font-semibold text-gray-700 mb-2">
-                    {(() => {
-                      if (['pie'].includes(chartType)) return "Category";
-                      if (['stackedBar', 'stackedBar100', 'boxPlot', 'heatmap', 'radar', 'calendarHeatmap', 'violinPlot', 'groupedBar'].includes(chartType)) return "Category";
-                      if (chartType === 'histogram') return "Value";
-                      return chartType === "calendarHeatmap" ? "Date" : "X-Axis";
-                    })()}
-                  </label>
-
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder={`Select ${chartType === "calendarHeatmap" ? "Date" : "X-Axis"}...`}
-                      value={xAxisSearch || xKey}
-                      onFocus={() => {
-                        setXInputFocused(true);
-                        setXAxisDropdownOpen(true);
-                      }}
-                      onBlur={() => {
-                        setTimeout(() => setXAxisDropdownOpen(false), 150);
-                      }}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setXAxisSearch(value);
-                        setXAxisDropdownOpen(true);
-                        if (value.trim() === "") {
-                          setXKey("");
-                        }
-                      }}
-                      className="w-full p-2 border border-gray-300 rounded pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
-                    />
-                    <ChevronDown
-                      size={16}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                    />
-                  </div>
-
-                  {xAxisDropdownOpen && (
-                    <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
-                         style={{ animation: 'fadeIn 0.2s ease-out' }}>
-                      {Object.keys(data[0] || {})
-                        .filter((key) => key.toLowerCase().includes((xAxisSearch || '').toLowerCase()))
-                        .map((key) => (
-                          <div
-                            key={key}
-                            onMouseDown={() => {
-                              setXKey(key);
-                              setXAxisSearch('');
-                              setXAxisDropdownOpen(false);
-                            }}
-                            className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
-                          >
-                            <div className="font-medium text-gray-900 text-base">{key}</div>
-                          </div>
-                        ))}
-                      {Object.keys(data[0] || {}).filter((key) =>
-                        key.toLowerCase().includes((xAxisSearch || "").toLowerCase())
-                      ).length === 0 && (
-                        <div className="p-2 text-gray-500 text-center italic">No matching label found</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Y-Axis Selection */}
-                {chartType !== 'histogram' && (
-                  <div className="mb-4 relative">
-                    <label className="block text-lg font-semibold text-gray-700 mb-2">
-                      {(() => {
-                        if (['pie'].includes(chartType)) return "Value";
-                        if (['stackedBar', 'stackedBar100', 'groupedBar'].includes(chartType)) return "Select Data to Stack";
-                        if (['boxPlot', 'heatmap', 'radar', 'calendarHeatmap', 'violinPlot'].includes(chartType)) return "Value";
-                        return "Y-Axis";
-                      })()}
-                    </label>
-
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder={`Select ${['stackedBar', 'stackedBar100', 'groupedBar'].includes(chartType) ? "Data to Stack" : "Y-Axis"}...`}
-                        value={
-                          ['radar', 'stackedBar', 'stackedBar100', 'groupedBar'].includes(chartType)
-                            ? (Array.isArray(yKey) ? yKey.join(', ') : '')
-                            : (yAxisSearch || yKey)
-                        }
-                        onFocus={() => {
-                          setYInputFocused(true);
-                          setYAxisDropdownOpen(true);
-                        }}
-                        onBlur={() => {
-                          setTimeout(() => setYAxisDropdownOpen(false), 150);
-                        }}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setYAxisSearch(value);
-                          setYAxisDropdownOpen(true);
-                          if (value.trim() === "") {
-                            setYKey("");
-                          }
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
-                      />
-                      <ChevronDown
-                        size={16}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                      />
-                    </div>
-
-                    {yAxisDropdownOpen && (
-                      <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
-                           style={{ animation: 'fadeIn 0.2s ease-out' }}>
-                        {Object.keys(data[0] || {})
-                          .filter((key) => {
-                            if (!key.toLowerCase().includes((yAxisSearch || '').toLowerCase())) return false;
-                            if (['boxPlot', 'heatmap', 'calendarHeatmap', 'radar', 'violinPlot'].includes(chartType)) {
-                              return !isNaN(parseFloat(data[0][key]));
-                            }
-                            return true;
-                          })
-                          .map((key) => (
-                            <div
-                              key={key}
-                              onMouseDown={() => {
-                                if (['radar', 'stackedBar', 'stackedBar100', 'groupedBar'].includes(chartType)) {
-                                  setYKey(prev => {
-                                    const selected = Array.isArray(prev) ? prev : [];
-                                    return selected.includes(key)
-                                      ? selected.filter(k => k !== key)
-                                      : [...selected, key];
-                                  });
-                                } else {
-                                  setYKey(key);
-                                  setYAxisSearch('');
-                                  setYAxisDropdownOpen(false);
-                                }
-                              }}
-                              className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
-                            >
-                              <div className="flex items-center space-x-3">
-                                {['radar', 'stackedBar', 'stackedBar100', 'groupedBar'].includes(chartType) && (
-                                  <input
-                                    type="checkbox"
-                                    checked={Array.isArray(yKey) && yKey.includes(key)}
-                                    readOnly
-                                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                  />
-                                )}
-                                <div className="font-medium text-gray-900 text-base">{key}</div>
-                              </div>
-                            </div>
-                          ))}
-                        {Object.keys(data[0] || {}).filter((key) =>
-                          key.toLowerCase().includes((yAxisSearch || "").toLowerCase())
-                        ).length === 0 && (
-                          <div className="p-2 text-gray-500 text-center italic">No matching label found</div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-
-                {/* Z-Axis Selection for Bubble Chart */}
-                {chartType === 'bubble' && (
-                  <div className="mb-4 relative">
-                    <label className="block text-lg font-semibold text-gray-700 mb-2">Size</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Select Z-Axis..."
-                        value={zAxisSearch || zKey}
-                        onFocus={() => setZAxisDropdownOpen(true)}
-                        onBlur={() => setTimeout(() => setZAxisDropdownOpen(false), 150)}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setZAxisSearch(value);
-                          setZAxisDropdownOpen(true);
-                          if (value.trim() === "") {
-                            setZKey("");
-                          }
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
-                      />
-                      <ChevronDown
-                        size={16}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                      />
-                    </div>
-
-                    {zAxisDropdownOpen && (
-                      <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
-                           style={{ animation: 'fadeIn 0.2s ease-out' }}>
-                        {Object.keys(data[0] || {})
-                          .filter((key) => key.toLowerCase().includes((zAxisSearch || '').toLowerCase()))
-                          .map((key) => (
-                            <div
-                              key={key}
-                              onMouseDown={() => {
-                                setZKey(key);
-                                setZAxisSearch('');
-                                setZAxisDropdownOpen(false);
-                              }}
-                              className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
-                            >
-                              <div className="font-medium text-gray-900 text-base">{key}</div>
-                            </div>
-                          ))}
-                          {Object.keys(data[0] || {}).filter((key) =>
-                            key.toLowerCase().includes((zAxisSearch || "").toLowerCase())
-                          ).length === 0 && (
-                            <div className="p-2 text-gray-500 text-center italic">No matching label found</div>
-                          )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-
-                {/* Group By Selection */}
-                {['stackedBar', 'stackedBar100', 'bubble', 'scatter', 'groupedBar'].includes(chartType) && (
-                  <div className="mb-4 relative">
-                    <label className="block text-lg font-semibold text-gray-700 mb-2">Group By</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Select Group Key..."
-                        value={groupSearch || groupKey}
-                        onFocus={() => setGroupDropdownOpen(true)}
-                        onBlur={() => setTimeout(() => setGroupDropdownOpen(false), 150)}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setGroupSearch(value);
-                          setGroupDropdownOpen(true);
-                          if (value.trim() === "") {
-                            setGroupKey("");
-                          }
-                        }}
-                        className="w-full p-2 border border-gray-300 rounded pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
-                      />
-                      <ChevronDown
-                        size={16}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                      />
-                    </div>
-
-                    {groupDropdownOpen && (
-                      <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
-                           style={{ animation: 'fadeIn 0.2s ease-out' }}>
-                        {Object.keys(data[0] || {})
-                          .filter((key) => key.toLowerCase().includes((groupSearch || '').toLowerCase()))
-                          .map((key) => (
-                            <div
-                              key={key}
-                              onMouseDown={() => {
-                                setGroupKey(key);
-                                setGroupSearch('');
-                                setGroupDropdownOpen(false);
-                              }}
-                              className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
-                            >
-                              <div className="font-medium text-gray-900 text-base">{key}</div>
-                            </div>
-                          ))}
-                          {Object.keys(data[0] || {}).filter((key) =>
-                              key.toLowerCase().includes((groupSearch || "").toLowerCase())
-                            ).length === 0 && (
-                              <div className="p-2 text-gray-500 text-center italic">No matching label found</div>
-                          )}  
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {['sunburst'].includes(chartType) && (
+                return (
                   <>
-                    {/* Tree Levels Mapping */}
-                    <div className="mb-4 relative">
-                      <label className="block text-lg font-semibold text-gray-700 mb-2">Hierarchy Levels (Top to Bottom)</label>
-                      <div className="space-y-2 max-h-48 overflow-y-auto p-3 border border-gray-200 rounded-xl bg-gray-50">
-                        {Object.keys(data[0] || {}).map(key => {
-                          const isSelected = treeHierarchyKeys.includes(key);
-                          
-                          return (
-                            <div
-                              key={key}
-                              onClick={() => {
-                                if (isSelected) {
-                                  setTreeHierarchyKeys(treeHierarchyKeys.filter(k => k !== key));
-                                } else {
-                                  setTreeHierarchyKeys([...treeHierarchyKeys, key]);
-                                }
-                              }}
-                              className={`p-3 cursor-pointer transition-all duration-200 border-2 rounded-lg ${
-                                isSelected 
-                                  ? 'border-blue-400 bg-blue-50 shadow-sm' 
-                                  : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="font-medium text-gray-900 text-base">{key}</div>
-                                {isSelected && (
-                                  <div className="text-blue-500 font-bold text-lg">✓</div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Tree Value Mapping */}
-                    <div className="mb-4 relative">
-                      <label className="block text-lg font-semibold text-gray-700 mb-2">Node Value Field</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Select Value Field..."
-                          value={treeValueSearch || treeValueKey}
-                          onFocus={() => setTreeValueDropdownOpen(true)}
-                          onBlur={() => setTimeout(() => setTreeValueDropdownOpen(false), 150)}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setTreeValueSearch(value);
-                            setTreeValueDropdownOpen(true);
-                            if (value.trim() === "") {
-                              setTreeValueKey("");
-                            }
-                          }}
-                          className="w-full p-3 border border-gray-300 rounded-lg pr-10 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
-                        />
-                        <ChevronDown
-                          size={16}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                        />
-                      </div>
-
-                      {treeValueDropdownOpen && (
-                        <div className="absolute z-10 bg-white border border-gray-200 rounded-xl w-full max-h-64 overflow-y-auto mt-1 shadow-lg ring-1 ring-black ring-opacity-5"
-                             style={{ animation: 'fadeIn 0.2s ease-out' }}>
-                          {Object.keys(data[0] || {})
-                            .filter((key) => key.toLowerCase().includes((treeValueSearch || '').toLowerCase()))
-                            .map((key) => (
-                              <div
-                                key={key}
-                                onMouseDown={() => {
-                                  setTreeValueKey(key);
-                                  setTreeValueSearch('');
-                                  setTreeValueDropdownOpen(false);
-                                }}
-                                className="p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0"
-                              >
-                                <div className="font-medium text-gray-900 text-base">{key}</div>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
+                    {cfg.x && (
+                      <AxisDropdown
+                        label={cfg.x}
+                        placeholder={`Select ${cfg.x}...`}
+                        value={xKey}
+                        setValue={setXKey}
+                        search={xAxisSearch}
+                        setSearch={setXAxisSearch}
+                        dropdownOpen={xAxisDropdownOpen}
+                        setDropdownOpen={setXAxisDropdownOpen}
+                        data={data}
+                        {...getFilterProps(cfg.xFilter)}
+                      />
+                    )}
+                    {cfg.y && (
+                      <AxisDropdown
+                        label={cfg.y}
+                        placeholder={`Select ${cfg.y}...`}
+                        value={yKey}
+                        setValue={setYKey}
+                        search={yAxisSearch}
+                        setSearch={setYAxisSearch}
+                        dropdownOpen={yAxisDropdownOpen}
+                        setDropdownOpen={setYAxisDropdownOpen}
+                        data={data}
+                        allowMultiple={cfg.multipleY}
+                        {...getFilterProps(cfg.yFilter)}
+                      />
+                    )}
+                    {cfg.z && (
+                      <AxisDropdown
+                        label={cfg.z}
+                        placeholder={`Select ${cfg.z}...`}
+                        value={zKey}
+                        setValue={setZKey}
+                        search={zAxisSearch}
+                        setSearch={setZAxisSearch}
+                        dropdownOpen={zAxisDropdownOpen}
+                        setDropdownOpen={setZAxisDropdownOpen}
+                        data={data}
+                        {...getFilterProps(cfg.zFilter)}
+                      />
+                    )}
+                    {cfg.group && (
+                      <AxisDropdown
+                        label={cfg.group}
+                        placeholder={`Select ${cfg.group}...`}
+                        value={groupKey}
+                        setValue={setGroupKey}
+                        search={groupSearch}
+                        setSearch={setGroupSearch}
+                        dropdownOpen={groupDropdownOpen}
+                        setDropdownOpen={setGroupDropdownOpen}
+                        data={data}
+                        {...getFilterProps(cfg.groupFilter)}
+                      />
+                    )}
                   </>
-                )}
-              </div>
+                );
+              })()}
             </div>
-        </motion.div>
+          </motion.div>
         )}
 
         <motion.div 
@@ -908,19 +903,7 @@ const Dashboard = () => {
                       >
                         <i className={`fa-solid fa-hand text-base  ${toolMode === 'pan' ? 'scale-110' : ''}`}></i>
                       </motion.button>
-                      <motion.button
-                        title="Pointer Mode - Precise selection and interaction"
-                        onClick={() => setToolMode('pointer')}
-                        className={`w-12 h-12 flex items-center justify-center rounded-xl  backdrop-blur-sm ${
-                          toolMode === 'pointer' 
-                            ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xl shadow-emerald-300/30 scale-95  ring-emerald-300/50 ' 
-                            : 'bg-gradient-to-br from-white/80 to-gray-50/80 hover:from-emerald-50 hover:to-emerald-100 text-gray-600 hover:text-emerald-700 border border-gray-200/60 hover:border-emerald-300/60 shadow-md hover:shadow-emerald-100/30'
-                        }`}
-                        whileHover={{ scale: toolMode === 'pointer' ? 0.9 : 1.15 }}
-                        whileTap={{ scale: 0.85 }}
-                      >
-                        <i className={`fa-solid fa-crosshairs text-base ${toolMode === 'pointer' ? 'scale-110' : ''}`}></i>
-                      </motion.button>
+
                     </div>
                   </div>
                   
@@ -976,25 +959,28 @@ const Dashboard = () => {
                           Text Color
                         </div>
                       </div>
-                      <div className="relative group">
-                        <motion.div
-                          className="relative p-1 rounded-xl border-2 border-white/80 shadow-xl hover:shadow-2xl bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm"
-                          whileHover={{ scale: 1.2 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <input
-                            type="color"
-                            value={chartColors.axis}
-                            onChange={(e) => setChartColors(prev => ({ ...prev, axis: e.target.value }))}
-                            className="w-10 h-10 rounded-lg cursor-pointer appearance-none border-none shadow-lg"
-                            title="Axis Color"
-                          />
-                          <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
-                        </motion.div>
-                        <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-lg font-semibold text-gray-700 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-xl border border-gray-200/60 ring-1 ring-emerald-100/30">
-                          Axis Color
+                      {/* Conditionally render Axis Color picker - hide for charts without traditional axes */}
+                      {!['pie', 'radar'].includes(chartType) && (
+                        <div className="relative group">
+                          <motion.div
+                            className="relative p-1 rounded-xl border-2 border-white/80 shadow-xl hover:shadow-2xl bg-gradient-to-br from-white/90 to-gray-50/90 backdrop-blur-sm"
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <input
+                              type="color"
+                              value={chartColors.axis}
+                              onChange={(e) => setChartColors(prev => ({ ...prev, axis: e.target.value }))}
+                              className="w-10 h-10 rounded-lg cursor-pointer appearance-none border-none shadow-lg"
+                              title="Axis Color"
+                            />
+                            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
+                          </motion.div>
+                          <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-lg font-semibold text-gray-700 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap bg-white/95 backdrop-blur-sm px-3 py-2 rounded-lg shadow-xl border border-gray-200/60 ring-1 ring-emerald-100/30">
+                            Axis Color
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>

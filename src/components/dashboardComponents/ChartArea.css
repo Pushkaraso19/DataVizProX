@@ -1,4 +1,8 @@
-/* ChartArea container styles */
+.chart-area .tick text,
+.chart-area .tick line,
+.chart-area .domain {
+  /* Do not set color here; let D3 control it */
+}
 .chart-area {
   width: 100%;
   height: 100%;
@@ -130,6 +134,10 @@
   transition: height 0.3s ease;
 }
 
+.mock-bar {
+  fill: unset !important;
+}
+
 /* Line chart styles */
 .mock-line-chart {
   width: 100%;
@@ -249,37 +257,12 @@
   stroke-width: 1;
 }
 
-.mock-cell.level-1 {
-  fill: rgba(59, 130, 246, 0.2);
-}
-
-.mock-cell.level-2 {
-  fill: rgba(59, 130, 246, 0.4);
-}
-
-.mock-cell.level-3 {
-  fill: rgba(59, 130, 246, 0.6);
-}
-
-.mock-cell.level-4 {
-  fill: rgba(59, 130, 246, 0.8);
-}
-
-.mock-cell.level-5 {
-  fill: rgba(59, 130, 246, 1);
-}
-
 /* Bubble chart styles */
 .mock-bubble-chart {
   width: 100%;
   height: 100%;
 }
 
-.mock-bubble {
-  fill: rgba(59, 130, 246, 0.5);
-  stroke: #3b82f6;
-  stroke-width: 1;
-}
 
 /* Sunburst styles */
 .mock-sunburst-chart {

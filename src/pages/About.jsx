@@ -384,8 +384,8 @@ const About = () => {
                   className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 bg-white text-gray-900 px-6 py-4 rounded-2xl border border-emerald-100 min-w-[300px] shadow-[0_8px_24px_rgba(16,185,129,0.12)]"
                   initial={{ scale: 0, y: 20 }}
                   whileInView={{ scale: 1, y: 0 }}
-                  transition={{ duration: 0.7, delay: 0.3 }}
-                  whileHover={{ scale: 1.02, y: -2 }}
+                  transition={{ duration: 0.5 }}
+                  whileHover={{ scale: 1.02 }}
                 >
                   <div className="flex items-center justify-between gap-4">
                     {/* Name and Title on Left */}
@@ -401,7 +401,7 @@ const About = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-12 h-12 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 text-white rounded-full flex items-center justify-center border-2 border-emerald-300 shadow-[0_4px_12px_rgba(16,185,129,0.3)] transition-all duration-300 outline-none focus:outline-none hover:shadow-[0_6px_18px_rgba(16,185,129,0.4)] hover:border-emerald-200"
-                        whileHover={{ scale: 1.15, y: -2 }}
+                        whileHover={{ scale: 1.15 }}
                         whileTap={{ scale: 0.9 }}
                         transition={{ duration: 0.2 }}
                         style={{ textDecoration: 'none' }}
@@ -414,7 +414,7 @@ const About = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-12 h-12 bg-gradient-to-br from-teal-500 via-teal-600 to-teal-700 text-white rounded-full flex items-center justify-center border-2 border-teal-300 shadow-[0_4px_12px_rgba(20,184,166,0.3)] transition-all duration-300 outline-none focus:outline-none focus:ring-0 hover:shadow-[0_6px_18px_rgba(20,184,166,0.4)] hover:border-teal-200"
-                        whileHover={{ scale: 1.15, y: -2 }}
+                        whileHover={{ scale: 1.15 }}
                         whileTap={{ scale: 0.9 }}
                         transition={{ duration: 0.2 }}
                         style={{ textDecoration: 'none' }}

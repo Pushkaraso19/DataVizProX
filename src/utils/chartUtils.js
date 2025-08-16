@@ -1,10 +1,5 @@
 import * as d3 from 'd3';
 
-/**
- * Chart Generation Utilities
- * Provides robust data validation, transformation, and helper functions for chart generation
- */
-
 // Data validation utilities
 export const validateData = (data, requiredKeys = []) => {
   if (!data || !Array.isArray(data) || data.length === 0) {
