@@ -2069,20 +2069,17 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         ...d
       }));
     }
-  
-    // Clean previous SVG content
-    svg.selectAll("*").remove();
-  
-    // Base config
+
+    // Adjust chart center downward to make space for title
     const radius = Math.min(width, height) / 2;
     const angleSlice = (2 * Math.PI) / keys.length;
-  
+
     const rScale = d3.scaleLinear()
       .domain([0, d3.max(radarData, d => d3.max(keys, key => +d[key]))])
       .range([0, radius]);
-  
+
     const g = svg.append("g")
-      .attr("transform", `translate(${width / 2},${height / 2})`);
+      .attr("transform", `translate(${width / 2},${height / 2 + ((margin && margin.top ? margin.top : 40) / 2)})`);
 
     // Create categorical color scale using chartColors
     const seriesNames = radarData.map(d => d.name);
@@ -2642,7 +2639,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
   
 
   const generateSlopeChart = (svg, width, height, data, tooltip, margin, xKey, yKey, zKey, chartColors) => {
-    svg.selectAll("*").remove();
 
     if (!data || data.length === 0) {
       svg.append("text")
@@ -3107,7 +3103,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
             gap: '4px'
           }}
         >
-          <span>⚡</span>
           <span>Optimized: {chartData?.length || 0}/{data?.length || 0} points</span>
         </div>
       )}
