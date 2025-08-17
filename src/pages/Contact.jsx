@@ -67,18 +67,15 @@ const Contact = () => {
     });
 
     try {
-      // Replace with your actual EmailJS service ID, template ID, and public key
-      const serviceId = 'service_ripxvs6';
-      const templateId = 'template_t5v631n';
-      const publicKey = 'OZAYTh_d8jBkrIcx9';
+      const serviceId = 'service_ent9gma';
+      const templateId = 'template_pt9e07q';
+      const publicKey = '0oJYfKE9UOX5Djj_3';
 
       const templateParams = {
         from_name: formData.name,
         from_email: formData.email,
         message: formData.message,
         date: new Date().toLocaleString(),
-        // Keep this as is - EmailJS will replace the template variable on their end
-        ip_address: '{{client.ip}}' 
       };
 
       const response = await emailjs.send(
@@ -95,7 +92,6 @@ const Contact = () => {
           success: true,
           error: null
         });
-        // Explicitly set showModal to true to ensure it shows
         setShowModal(true);
         resetForm();
       } else {
@@ -195,8 +191,8 @@ const Contact = () => {
                   </div>
                   <div>
                     <p className="font-semibold text-gray-800">Email</p>
-                    <a href="mailto:info.datavizpro@gmail.com" className="text-teal-600 hover:text-teal-700">
-                      info.datavizpro@gmail.com
+                    <a href="mailto:datavizprox@gmail.com" className="text-teal-600 hover:text-teal-700">
+                      datavizprox@gmail.com
                     </a>
                   </div>
                 </motion.div>

@@ -190,7 +190,7 @@ const About = () => {
           >
             About{' '}
             <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
-              DataViz Pro
+              DataViz ProX
             </span>
           </motion.h1>
           
@@ -227,7 +227,7 @@ const About = () => {
                 <h3 className="text-2xl font-bold text-gray-800">Our Mission</h3>
               </div>
               <p className="text-gray-600 leading-relaxed mb-6">
-                At DataViz Pro, we believe that data should be accessible and understandable to everyone. 
+                At DataViz ProX, we believe that data should be accessible and understandable to everyone. 
                 Our mission is to empower professionals, researchers, and enthusiasts with the ability to 
                 visualize complex data in a simple and effective way.
               </p>
@@ -507,7 +507,7 @@ const About = () => {
                 </div>
                 <p className="text-emerald-50 leading-relaxed text-lg">
                   Transform your data into compelling stories in minutes. 
-                  Join thousands who trust DataViz Pro.
+                  Join thousands who trust DataViz ProX.
                 </p>
               </motion.div>
               

@@ -53,7 +53,7 @@ const Home = () => {
             </div>
             
             <p className="text-2xl text-gray-600 leading-relaxed">
-              DataViz Pro helps you transform complex data into intuitive, interactive visualizations that tell a compelling story. Discover hidden patterns and make data-driven decisions with confidence.
+              DataViz ProX helps you transform complex data into intuitive, interactive visualizations that tell a compelling story. Discover hidden patterns and make data-driven decisions with confidence.
             </p>
 
             {/* Key Benefits */}
@@ -113,7 +113,7 @@ const Home = () => {
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-gray-800 mb-4">Watch the Live Demo</h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Jump through key chapters and explore how <span className="text-emerald-600 font-semibold">DataViz Pro</span> transforms raw data into beautiful visual insights.
+            Jump through key chapters and explore how <span className="text-emerald-600 font-semibold">DataViz ProX</span> transforms raw data into beautiful visual insights.
           </p>
         </div>
         <div className="bg-white rounded-xl shadow-xl p-8 mx-auto">

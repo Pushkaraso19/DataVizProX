@@ -44,7 +44,7 @@ const FeatureSection = (props) => {
                     className="text-4xl font-bold text-gray-800 mb-4"
                     variants={slideUp}
                 >
-                    Why Choose <span className="text-emerald-600">DataViz Pro</span>
+                    Why Choose <span className="text-emerald-600">DataViz ProX</span>
                 </motion.h2>
                 <motion.p 
                     className="text-xl text-gray-600 max-w-3xl mx-auto"

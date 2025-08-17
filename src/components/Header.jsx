@@ -24,13 +24,13 @@ const Header = () => {
               <div className="relative">
                 <img 
                   src={logo} 
-                  alt="DataViz Pro Logo" 
+                  alt="DataViz ProX Logo" 
                   className="h-20 w-20"
                 />
               </div>
               <div className="flex flex-col mt-1 ">
                 <span className={`text-3xl font-bold transition-colors duration-300 text-emerald-50`}>
-                  DataViz<span className={`text-emerald-400`}>Pro</span>
+                  DataViz<span className={`text-emerald-400`}> ProX</span>
                 </span>
                 <span className={`font-medium transition-colors duration-300 text-emerald-50`}>
                   Visualize Your Data

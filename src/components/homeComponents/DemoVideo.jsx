@@ -73,7 +73,7 @@ const DemoVideo = () => {
             <iframe
               ref={iframeRef}
               src="https://www.youtube.com/embed/YOUR_VIDEO_ID?enablejsapi=1&rel=0&showinfo=0"
-              title="DataVizPro Demo Video"
+              title="DataViz ProX Demo Video"
               allow="autoplay; encrypted-media; picture-in-picture"
               allowFullScreen
               className="w-full h-full rounded-xl"

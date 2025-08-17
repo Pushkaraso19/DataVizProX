@@ -13,7 +13,7 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-1 lg:col-span-1">
             <Link to="/" className="inline-block mb-6">
               <h2 className="text-2xl font-bold">
-                DataViz<span className="text-emerald-400">Pro</span>
+                DataViz<span className="text-emerald-400"> ProX</span>
               </h2>
             </Link>
             <p className="text-gray-400 mb-6">
@@ -21,7 +21,7 @@ const Footer = () => {
             </p>
             <div className="flex space-x-4">
               <motion.a 
-                href="https://linkedin.com" 
+                href="https://www.linkedin.com/in/pushkar-asodekar/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="bg-gray-800 hover:bg-emerald-600 h-10 w-10 rounded-full flex items-center justify-center transition-colors"
@@ -30,7 +30,7 @@ const Footer = () => {
                 <i className="fab fa-linkedin-in"></i>
               </motion.a>
               <motion.a 
-                href="https://github.com" 
+                href="https://github.com/Pushkaraso19/DataVizProX" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="bg-gray-800 hover:bg-emerald-600 h-10 w-10 rounded-full flex items-center justify-center transition-colors"
@@ -75,8 +75,8 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center">
                 <i className="fas fa-envelope text-emerald-400 mr-3"></i>
-                <a href="mailto:info@datavizpro.com" className="text-gray-400 hover:text-white transition-colors">
-                  info.datavizpro@gmail.com
+                <a href="mailto:datavizprox@gmail.com" className="text-gray-400 hover:text-white transition-colors">
+                  datavizprox@gmail.com
                 </a>
               </li>
             </ul>
@@ -85,7 +85,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="border-t border-gray-800 pt-6 text-center text-gray-500">
-          <p>&copy; {year} DataViz Pro. All rights reserved.</p>
+          <p>&copy; {year} DataViz ProX. All rights reserved.</p>
         </div>
       </div>
     </footer>
