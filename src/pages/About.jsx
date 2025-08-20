@@ -283,7 +283,7 @@ const About = () => {
               variants={itemVariants}
             >
               Everything You Need to{' '}
-              <span className="text-emerald-600">Visualize Data</span>
+              <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Visualize Data</span>
             </motion.h2>
             <motion.p 
               className="text-2xl text-gray-600 max-w-3xl mx-auto"
