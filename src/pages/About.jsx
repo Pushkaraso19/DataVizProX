@@ -368,16 +368,24 @@ const About = () => {
                 <div className="absolute -bottom-6 -right-6 w-16 h-16 bg-gradient-to-br from-teal-400/25 to-emerald-500/25 rounded-xl -rotate-12 blur-xl animate-pulse delay-1000"></div>
 
                 {/* Profile Image with Clean Shadow - Made Larger */}
-                <div className="relative w-[25rem] h-[25rem] rounded-full overflow-hidden shadow-[0_8px_32px_rgba(16,185,129,0.15)] border-4 border-white bg-gradient-to-tr from-emerald-500 to-teal-500 p-1">
-                  <div className="w-full h-full rounded-full overflow-hidden bg-white">
-                    <img
-                      src={PushkarImg}
-                      alt="Pushkar Asodekar"
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-emerald-900/20 group-hover:to-emerald-900/30 transition-all duration-300"></div>
+                <a
+                  href="https://pushkarasodekar.netlify.app/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block focus:outline-none focus:ring-4 focus:ring-emerald-300 rounded-full"
+                  title="View Portfolio"
+                >
+                  <div className="relative w-[25rem] h-[25rem] rounded-full overflow-hidden shadow-[0_8px_32px_rgba(16,185,129,0.15)] border-4 border-white bg-gradient-to-tr from-emerald-500 to-teal-500 p-1">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-white">
+                      <img
+                        src={PushkarImg}
+                        alt="Pushkar Asodekar"
+                        className="object-cover w-full h-full cursor-pointer hover:opacity-90 transition-opacity duration-200"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-emerald-900/20 group-hover:to-emerald-900/30 transition-all duration-300"></div>
+                    </div>
                   </div>
-                </div>
+                </a>
 
                 {/* Name Badge with Left-Right Layout - Optimized */}
                 <motion.div

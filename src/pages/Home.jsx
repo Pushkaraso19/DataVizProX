@@ -74,7 +74,7 @@ const Home = () => {
                 </Link>
               </motion.div>
 
-              <motion.div
+              {/* <motion.div
                 className="inline-block"
               >
                 <button 
@@ -84,7 +84,7 @@ const Home = () => {
                   <i className="fas fa-play mr-2"></i>
                   Watch Demo
                 </button>
-              </motion.div>
+              </motion.div> */}
                   
             </div>
           </motion.div>

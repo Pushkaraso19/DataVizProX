@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import ScrollToTop from './components/ScrollToTop';
 import { AnimatePresence } from 'framer-motion';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -43,6 +44,7 @@ function AnimatedRoutes() {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Header /> {/* Add Navbar here */}
       <AnimatedRoutes />
       <Footer /> {/* Add Footer here */}
