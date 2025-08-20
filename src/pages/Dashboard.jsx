@@ -807,7 +807,7 @@ const Dashboard = () => {
                 Transform Your <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Data</span> into Beautiful <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Visualizations</span>
               </h1>
             </div>
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-2xl text-gray-600 leading-relaxed">
               Upload your data to get started with creating stunning visualizations that tell your story
             </p>
           </motion.div>
@@ -1101,7 +1101,7 @@ const Dashboard = () => {
                 <div className="text-gray-400 mb-4">
                   {ChartTypes[chartType].icon && React.cloneElement(ChartTypes[chartType].icon, { size: 48 })}
                 </div>
-                <p className="text-gray-500 text-lg">
+                <p className="text-gray-500 text-xl">
                   Upload data to generate a {ChartTypes[chartType].label}
                 </p>
               </div>

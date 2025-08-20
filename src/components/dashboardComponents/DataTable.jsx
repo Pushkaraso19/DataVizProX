@@ -102,8 +102,8 @@ const DataTable = ({ data, setData, searchTerm }) => {
         <div className="w-16 h-16 bg-emerald-100 shadow-inner rounded-xl flex items-center justify-center mb-4">
           <i className="fa-solid fa-database text-3xl text-emerald-600"></i>
         </div>
-        <h3 className="text-lg font-bold text-emerald-800 mb-1">No Data Available</h3>
-        <p className="text-emerald-600">
+        <h3 className="text-xl font-bold text-emerald-800 mb-1">No Data Available</h3>
+        <p className="text-emerald-600 text-lg">
           Upload a file to start exploring and visualizing your data in real time.
         </p>
       </div>

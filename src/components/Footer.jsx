@@ -12,11 +12,11 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-1 lg:col-span-1">
             <Link to="/" className="inline-block mb-6">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-3xl font-bold">
                 DataViz<span className="text-emerald-400"> ProX</span>
               </h2>
             </Link>
-            <p className="text-gray-400 mb-6">
+            <p className="text-gray-400 mb-6 text-2xl">
               Transform your data into clear, actionable insights with our powerful visualization platform.
             </p>
             <div className="flex space-x-4">
@@ -43,8 +43,8 @@ const Footer = () => {
 
           {/* Navigation Links */}
           <div className="col-span-1">
-            <h3 className="text-lg font-semibold mb-4 text-emerald-400">Quick Links</h3>
-            <ul className="space-y-2">
+            <h3 className="text-2xl font-semibold mb-4 text-emerald-400">Quick Links</h3>
+            <ul className="space-y-2 text-2xl">
               <li>
                 <Link to="/" className="text-gray-400 hover:text-white transition-colors">
                   Home
@@ -71,8 +71,8 @@ const Footer = () => {
           
           {/* Contact Info */}
           <div className="col-span-1">
-            <h3 className="text-lg font-semibold mb-4 text-emerald-400">Contact Us</h3>
-            <ul className="space-y-3">
+            <h3 className="text-2xl font-semibold mb-4 text-emerald-400">Contact Us</h3>
+            <ul className="space-y-3 text-2xl">
               <li className="flex items-center">
                 <i className="fas fa-envelope text-emerald-400 mr-3"></i>
                 <a href="mailto:datavizprox@gmail.com" className="text-gray-400 hover:text-white transition-colors">
@@ -84,7 +84,7 @@ const Footer = () => {
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-800 pt-6 text-center text-gray-500">
+        <div className="border-t border-gray-800 pt-6 text-center text-gray-500 text-2xl">
           <p>&copy; {year} DataViz ProX. All rights reserved.</p>
         </div>
       </div>

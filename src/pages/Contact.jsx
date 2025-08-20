@@ -16,14 +16,12 @@ const Contact = () => {
     email: '',
     message: ''
   });
-  
-  // Add a separate state to explicitly control modal visibility
+
   const [showModal, setShowModal] = useState(false);
   const formRef = useRef(null);
 
   // Check for URL parameters on component mount
   useEffect(() => {
-    // Check if there's a "submitted" parameter in the URL
     const urlParams = new URLSearchParams(window.location.search);
     const formSubmitted = urlParams.get('submitted');
   
@@ -34,8 +32,8 @@ const Contact = () => {
         success: true,
         error: null,
       });
-      setShowModal(true); // Show the modal
-      window.history.replaceState({}, document.title, window.location.pathname); // Clean up the URL
+      setShowModal(true);
+      window.history.replaceState({}, document.title, window.location.pathname); 
     }
   }, []);
 
@@ -67,9 +65,9 @@ const Contact = () => {
     });
 
     try {
-      const serviceId = 'service_ent9gma';
-      const templateId = 'template_pt9e07q';
-      const publicKey = '0oJYfKE9UOX5Djj_3';
+      const serviceId = import.meta.env.EMAILJS_SERVICE_ID;
+      const templateId = import.meta.env.EMAILJS_TEMPLATE_ID;
+      const publicKey = import.meta.env.EMAILJS_PUBLIC_KEY;
 
       const templateParams = {
         from_name: formData.name,
@@ -105,18 +103,17 @@ const Contact = () => {
         success: false,
         error: error.message || 'Failed to send message. Please try again.'
       });
-      // Also show modal for error
       setShowModal(true);
     }
   };
 
   const closeModal = () => {
-    setShowModal(false); // Close the modal
+    setShowModal(false); 
     setStatus({
       submitting: false,
       submitted: false,
       success: false,
-      error: null, // Reset the status state
+      error: null, 
     });
   };
 
@@ -160,7 +157,7 @@ const Contact = () => {
           </motion.h1>
           
           <motion.p 
-            className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
+            className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.8 }}

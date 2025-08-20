@@ -47,7 +47,7 @@ const FeatureSection = (props) => {
                     Why Choose <span className="text-emerald-600">DataViz ProX</span>
                 </motion.h2>
                 <motion.p 
-                    className="text-xl text-gray-600 max-w-3xl mx-auto"
+                    className="text-2xl text-gray-600 max-w-3xl mx-auto"
                     variants={slideUp}
                 >
                   Our platform combines powerful visualization tools with intuitive design, making data analysis accessible to everyone.

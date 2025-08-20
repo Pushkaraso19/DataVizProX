@@ -29,7 +29,7 @@ const Home = () => {
   const [isMdUp, setIsMdUp] = useState(false);
 
   useEffect(() => {
-    const checkScreen = () => setIsMdUp(window.innerWidth >= 1024); // Tailwind's md breakpoint
+    const checkScreen = () => setIsMdUp(window.innerWidth >= 1024); 
     checkScreen();
     window.addEventListener("resize", checkScreen);
     return () => window.removeEventListener("resize", checkScreen);
@@ -131,7 +131,7 @@ const Home = () => {
         <div className="flex flex-col md:flex-row items-center justify-between">
           <div className="md:w-2/3 mb-8 md:mb-0">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Not Sure Where to Start?</h2>
-            <p className="text-xl opacity-90">Our team of data visualization experts is ready to help you unlock the full potential of your data.</p>
+            <p className="text-2xl opacity-90">Our team of data visualization experts is ready to help you unlock the full potential of your data.</p>
           </div>
           <motion.div
           >

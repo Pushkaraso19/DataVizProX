@@ -286,7 +286,7 @@ const About = () => {
               <span className="text-emerald-600">Visualize Data</span>
             </motion.h2>
             <motion.p 
-              className="text-xl text-gray-600 max-w-3xl mx-auto"
+              className="text-2xl text-gray-600 max-w-3xl mx-auto"
               variants={itemVariants}
             >
               Comprehensive tools designed to make your data visualization journey seamless and impactful.
@@ -307,7 +307,7 @@ const About = () => {
                 <div className="w-16 h-16 p-2 bg-emerald-100 rounded-2xl flex items-center justify-center text-emerald-600 mb-6 group-hover:bg-emerald-200 transition-colors duration-300">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-4 text-gray-800">
+                <h3 className="text-2xl font-bold mb-4 text-gray-800">
                   {feature.title}
                 </h3>
                 <p className="text-gray-600 leading-relaxed">
@@ -505,7 +505,7 @@ const About = () => {
                   </div>
                   <h2 className="text-2xl md:text-3xl font-bold">Ready to Get Started?</h2>
                 </div>
-                <p className="text-emerald-50 leading-relaxed text-lg">
+                <p className="text-emerald-50 leading-relaxed text-2xl">
                   Transform your data into compelling stories in minutes. 
                   Join thousands who trust DataViz ProX.
                 </p>

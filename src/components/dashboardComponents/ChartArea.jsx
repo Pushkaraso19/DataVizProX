@@ -2325,7 +2325,7 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
     // Add data points (nodes) for each series
     formattedData.forEach(seriesData => {
       g.selectAll(`.radar-dots-${seriesData.name.replace(/\s+/g, '')}`)
-        .data(seriesData.values.slice(0, -1)) // Remove duplicate closing point
+        .data(seriesData.values.slice(0, -1)) 
         .enter()
         .append("circle")
         .attr("class", `radar-dots-${seriesData.name.replace(/\s+/g, '')}`)
@@ -3146,7 +3146,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
 
   function drawChart(type, svg, width, height, data, tooltip, margin, { xKey, yKey, zKey, groupKey }) {
     try {
-      // Validate input parameters
       if (!data || !Array.isArray(data) || data.length === 0) {
         throw new Error('No valid data provided');
       }
@@ -3155,7 +3154,6 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
         throw new Error('Invalid chart dimensions');
       }
       
-      // Sample data for performance if dataset is very large
       const sampledData = chartUtils.sampleData(data, 5000);
       if (sampledData.length < data.length) {
         console.warn(`Data sampled from ${data.length} to ${sampledData.length} points for performance`);
@@ -3183,9 +3181,7 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
     
       const chartFn = chartFunctions[type];
       if (chartFn) {
-        // Call chart function with proper error boundary
         try {
-          // Charts that need zKey parameter
           if (['slopeChart', 'heatmap', 'bubble'].includes(type)) {
             chartFn(svg, width, height, sampledData, tooltip, margin, xKey, yKey, zKey, chartColors);
           } else {
@@ -3207,7 +3203,7 @@ const ChartArea = forwardRef(({ data, chartType, xKey, yKey, zKey, groupKey, tre
       
     } catch (error) {
       console.error('Error in drawChart:', error);
-      svg.selectAll('*').remove(); // Clear any partial renders
+      svg.selectAll('*').remove(); 
       
       svg.append("text")
         .attr("x", width / 2)
